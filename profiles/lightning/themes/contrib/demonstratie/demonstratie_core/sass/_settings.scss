@@ -1,0 +1,74 @@
+// @file
+// Default dimensions and colors.
+
+// Normalize variables
+$base-font-family: sans-serif;
+
+// Font
+$base-font-family: "Segoe UI", Hevetica Neue, Ubuntu, Verdana, Arial, sans-serif;
+$font-light: "Segoe UI", Hevetica Neue, Ubuntu, Verdana, Arial, sans-serif !default;
+
+// Buttons
+$base-border-width: .1em !default;
+
+// Breakpoints
+$respond-breakpoints: (small, 400) (medium, 760) (large, 980) (extra-large, 1024);
+$respond-unit: px;
+
+// Transition defaults
+$default-transition-property: all;
+$default-transition-duration: .1s;
+
+// Override default vertical rhythm for compass/typography.
+$base-font-size: 14px;
+$base-line-height: 24px;
+$indent-amount: 2.5em;
+$font-unit: 1em;
+$round-to-nearest-half-line: true;
+
+// Logo sizes
+$logo-icon: px-to-em(64) !default;
+$logo-width: px-to-em(168) !default;
+$logo-height: px-to-em(59) !default;
+
+//
+// Colors
+//
+
+// General
+$color-menu: #000 !default;
+
+// Background
+$color-background: #fff !default;
+$color-background-alternate: #efefef !default;
+$color-background-reverse: #000 !default;
+
+// Text colors
+$color-text: #000 !default;
+$color-text-reverse: #ededed !default;
+
+// Headers
+$color-header: $color-menu !default;
+$color-header-reverse: #fff !default;
+
+// Link colors
+$link-base: blue !default;
+$link-visited: darken($link-base, 20) !default;
+$link-hover: lighten($link-base, 20) !default;
+$link-more-base: $color-menu !default;
+$link-more-hover: lighten($link-more-base, 20) !default;
+$link-more-background-base: #fff375 !default;
+$link-more-background-hover: #224364 !default;
+
+// Border colors
+$color-border: lighten($color-text, 40) !default;
+
+// Tab colors
+$tab-background: tint($color-menu, 40) !default;
+$tab-link: $color-menu !default;
+
+// Form colors
+$color-input-background: #fff !default;
+$color-placeholder: lighten($color-text, 40) !default;
+$buttons: (default, #fefefe) (active, #f3f3f3, true) (primary, $link-base) (primary-active, $link-visited, true) (call-to-action, $color-background-reverse);
+

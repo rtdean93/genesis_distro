@@ -1,0 +1,17 @@
+<?php
+/**
+ * Implements hook_migrate_api().
+ */
+function import_migrate_api() {
+  $api = array(
+    'api' => 2,
+    'migrations' => array(
+      'ImportBaseNodes' => array('class_name' => 'ImportBaseNodes'),
+      'ImportBaseTerms' => array('class_name' => 'ImportBaseTerms'),
+      'ImportBaseUserPictures' => array('class_name' => 'ImportBaseUserPictures'),
+      'ImportBaseUsers' => array('class_name' => 'ImportBaseUsers'),
+    ),
+  );
+  return $api;
+}
+

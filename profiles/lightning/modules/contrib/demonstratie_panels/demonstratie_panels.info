@@ -1,0 +1,16 @@
+name = "Demonstratie Panels"
+description = "Panel layout and style definitions related to the Demonstratie theme."
+core = "7.x"
+
+
+; Information added by drush on 2013-07-24
+version = "unknown"
+project = "df"
+datestamp = "1374678399"
+
+
+; Information added by drush on 2014-04-21
+version = ""
+project = "demonstratie_panels"
+datestamp = "1398106516"
+

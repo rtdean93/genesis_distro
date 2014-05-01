@@ -1,0 +1,16 @@
+name = Bean All
+description = Integrate all blocks with beans.
+core = 7.x
+files[] = plugins/all.inc
+dependencies[] = bean
+dependencies[] = block
+dependencies[] = menu
+package = Bean
+
+
+; Information added by drush on 2014-04-21
+version = "7.x-1.7+4-dev"
+core = "7.x"
+project = "bean"
+datestamp = "1398106509"
+

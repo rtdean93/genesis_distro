@@ -1,0 +1,41 @@
+// @file
+// Generate styles for message color variants.
+
+/*
+## Messages
+*/
+
+$message-variants: (help #7cf) (status #af7) (warning #fa3) (error #f54) !default;
+
+%message {
+  @include box-sizing(border-box);
+  margin: $base-rhythm-unit 0;
+  padding: $base-rhythm-unit;
+  @include border-radius(.15em);
+  border-width: $base-border-width $base-border-width $base-border-width $base-leader;
+  border-style: solid;
+
+  > :first-child {
+    margin-top: 0;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+@mixin message-variants($variants: $message-variants) {
+  @each $variant in $variants {
+    %message-#{nth($variant, 1)} {
+      border-color: contrast-color(nth($variant, 2), darken(nth($variant, 2), 50), lighten(nth($variant, 2), 50));
+      color: contrast-color(nth($variant, 2), darken(nth($variant, 2), 50), lighten(nth($variant, 2), 50));
+      background: nth($variant, 2);
+      @include text-shadow(
+        #{-$base-border-width} #{-$base-border-width} 0 contrast-color(nth($variant, 2), lighten(nth($variant, 2), 10), darken(nth($variant, 2), 10)),
+        #{-$base-border-width} #{$base-border-width} 0 contrast-color(nth($variant, 2), lighten(nth($variant, 2), 10), darken(nth($variant, 2), 10)),
+        #{$base-border-width} #{$base-border-width} 0 contrast-color(nth($variant, 2), lighten(nth($variant, 2), 10), darken(nth($variant, 2), 10)),
+        #{$base-border-width} #{-$base-border-width} 0 contrast-color(nth($variant, 2), lighten(nth($variant, 2), 10), darken(nth($variant, 2), 10))
+      );
+    }
+  }
+}

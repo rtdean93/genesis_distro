@@ -1,0 +1,334 @@
+// @file
+// General typography styles.
+
+/**
+ ## Default element styles
+ */
+
+@include establish-baseline;
+
+html {
+  @extend %font-sansserif;
+  color: $color-text;
+  -webkit-font-smoothing: antialiased;
+  font-smoothing: antialiased;
+  text-rendering: optimizeLegibility\9; /* Only IE, can mess with Android */
+
+  @include respond(medium) {
+    font-size: 16px;
+  }
+
+  @include respond(large) {
+    font-size: 18px;
+  }
+}
+
+/**
+ ### Block level elements
+ */
+
+p,
+ul,
+ol,
+dl,
+table,
+form,
+fieldset,
+video,
+audio {
+  margin: $base-rhythm-unit 0;
+}
+
+/**
+ ### Default header styles
+ */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin: $base-rhythm-unit 0;
+  /* Headers need a nudge to get the vertical rhythm working. */
+  @include adjust-leading-to(.9);
+  @extend %font-sansserif-light;
+}
+
+h1 {
+  font-size: 3.2em;
+}
+
+h2 {
+  font-size: 2.8em;
+}
+
+h3 {
+  font-size: 2.4em;
+}
+
+h4 {
+  font-size: 2em;
+}
+
+h5 {
+  font-size: 1.6em;
+}
+
+h6 {
+  font-size: 1.2em;
+}
+
+/**
+ ### Default list styles
+ */
+
+ul,
+ol {
+  margin-left: $base-rhythm-unit * 2;
+}
+
+ol {
+  list-style: decimal;
+}
+
+ul {
+  list-style: disc;
+}
+
+li,
+dt,
+dd {
+  margin: $base-leader 0;
+}
+
+dt {
+  font-weight: bold
+}
+
+dd {
+  margin-left: $base-rhythm-unit;
+}
+
+/**
+ ### Default quote styles
+ */
+
+q {}
+
+blockquote {
+  margin: $base-rhythm-unit;
+  padding: $base-leader;
+  border-top: $base-border-width solid;
+  border-bottom: $base-border-width  solid;
+  @extend %font-serif-regular;
+  font-style: italic;
+}
+
+/**
+ ### Default table styles
+ */
+
+table {
+  border-top: $base-border-width solid;
+  border-bottom: $base-border-width solid;
+  width: 100%;
+}
+
+caption,
+tfoot {
+  @extend %font-serif-regular;
+  font-style: italic;
+}
+
+tr {
+  border-bottom: $base-border-width solid;
+}
+
+th {
+  font-weight: bold;
+}
+
+th,
+td {
+  padding: $base-half-leader;
+  border-left: $base-border-width dotted;
+  border-right: $base-border-width dotted;
+}
+
+/**
+ * Default form styles
+ */
+
+label {
+  display: block;
+}
+
+fieldset {
+  display: block;
+  @include rhythm-borders;
+  @include box-sizing(border-box);
+  width: 100%;
+  max-width: 100%;
+
+  > :first-child,
+  > legend + * {
+    margin-top: 0;
+  }
+
+  > :last-child {
+    margin-bottom: 0;
+  }
+}
+
+legend {
+  padding: 0 $base-leader;
+  @extend %sans-serif-light;
+  text-transform: uppercase;
+}
+
+button,
+input,
+textarea {
+  @include box-sizing(border-box);
+}
+
+input[type="color"],
+input[type="date"],
+input[type="datetime"],
+input[type="datetime-local"],
+input[type="email"],
+input[type="file"],
+input[type="month"],
+input[type="number"],
+input[type="password"],
+input[type="range"],
+input[type="search"],
+input[type="tel"],
+input[type="text"],
+input[type="time"],
+input[type="url"],
+input[type="week"],
+select,
+textarea {
+  @include box-sizing(border-box);
+  margin: $base-leader 0;
+  padding: $base-half-leader;
+  width: 100%;
+  max-width: 100%;
+  border: $base-border-width solid $color-border;
+  @include border-radius(.15em);
+  font-size: 1em;
+  background: $color-input-background;
+  @include background-clip(padding-box);
+
+  @include placeholder {
+    line-height: normal;
+    color: $color-placeholder;
+  }
+
+  &.required {}
+
+  &.error {}
+
+  @include respond(large) {
+    padding: $base-leader;
+  }
+}
+
+input[type="color"] {
+  padding: 0;
+  min-height: $base-leader * 2;
+}
+
+input[type="search"] {
+  -webkit-appearance: textfield;
+  &::-webkit-search-decoration {
+    display: none;
+  }
+}
+
+textarea {
+  height: auto;
+}
+
+button,
+input,
+select,
+textarea {
+  &[disabled] {
+    @include opacity(.4);
+  }
+}
+
+/**
+ ### Default inline text styles
+ */
+
+i,
+em {
+  @extend %font-sansserif-regular-italic;
+
+  h1 &,
+  h2 &,
+  h3 &,
+  h4 &,
+  h5 &,
+  h6 & {
+    @extend %font-sansserif-light-italic;
+  }
+
+  b &,
+  strong & {
+    @extend %font-sansserif-bold-italic;
+  }
+}
+
+b,
+strong {
+  @extend %font-sansserif-bold;
+
+  h1 &,
+  h2 &,
+  h3 &,
+  h4 &,
+  h5 &,
+  h6 & {
+    @extend %font-sansserif-regular;
+  }
+
+  i &,
+  em & {
+    @extend %font-sansserif-bold-italic;
+  }
+}
+
+sub,
+sup {
+  font-size: .8em;
+}
+
+sup {
+  vertical-align: super;
+}
+
+sub {
+  vertical-align: sub;
+}
+
+/**
+ ### Default link styles
+ */
+
+a {}
+
+/**
+ ### Default media styles
+ */
+
+img {
+  display: block;
+  margin: $base-rhythm-unit auto;
+  max-width: 100%;
+  height: auto;
+}

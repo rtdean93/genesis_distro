@@ -1,0 +1,212 @@
+//**
+//* @file
+//* Fill out the base styles for the theme.
+//*/
+
+// Import the reusables for all stylesheets.
+@import "base";
+
+$font-light: Hevetica Neue, Ubuntu, Verdana, Arial, sans-serif;
+
+// Color
+
+// General
+$color-menu: #111;
+
+// Background
+$color-background: #fff;
+$color-background-alternate: #e8e8e8;
+$color-background-reverse: #000;
+
+// Text colors
+$color-text: #333;
+$color-text-reverse: #ededed;
+
+// Headers
+$color-header: $color-menu;
+$color-header-reverse: #bffbff;
+
+// Link colors
+$link-base: #808080;
+$link-visited: darken($link-base, 20);
+$link-hover: lighten($link-base, 20);
+$link-more-base: #fff375;
+$link-more-hover: #fff6a8;
+$link-more-background-base: #fff375;
+$link-more-background-hover: #224364;
+
+// Border colors
+$color-border: lighten($color-text, 40);
+
+// Form colors
+$color-input-background: #fff;
+$color-placeholder: lighten($color-text, 40);
+$buttons: (default, #fefefe) (active, #f3f3f3, true) (primary, #272b38) (primary-active, #272b38, true) (call-to-action, rgb(180, 65, 65));
+
+// Output the styles.
+@import "baseline";
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  @include text-shadow(1px 1px 1px rgba(#000, .6));
+}
+
+.site-meta {
+  background-image: image-url('header-texture.png');
+}
+
+.local-task-link {
+  background-image: image-url("stripes.png");
+  background-image: image-url("stripes.png");
+
+  &:hover {
+    background-image: image-url("stripes.png");
+    background-image: image-url("stripes.png");
+  }
+}
+
+.alternate-scheme,
+.site-footer {
+  background-image: image-url('body-texture.png');
+}
+
+/**
+ * Header regions
+ */
+.header-search {
+  position: relative;
+  padding: 0;
+
+  .block {
+    top: -$base-leader;
+    margin: -$base-rhythm-unit * 1.5 $base-leader 0;
+    padding: $base-leader;
+    background: rgba(tint($color-menu, 80), .8);
+    border: .2em solid $color-menu;
+    @include border-radius(.2em);
+    @include box-shadow;
+    @include transition-property(opacity, visibility, margin-top);
+    @include transition-duration(.3s);
+
+    &.menu-active {
+      margin-top: $base-leader * 2 ;
+    }
+  }
+
+  @include respond(medium) {
+    @include box-sizing(border-box);
+
+    .region {
+      @include box-sizing(border-box);
+      float: right;
+      padding: 0 $base-leader;
+    }
+
+    .block {
+      position: absolute;
+      z-index: 3;
+      max-width: 30%;
+      max-height: 20em;
+      overflow: auto;
+      margin-right: 0;
+      margin-left: 0;
+      right: 0;
+    }
+  }
+}
+
+/**
+ * Menu triggers
+ */
+.trigger-container {
+  position: relative;
+  z-index: 2;
+  float: right;
+  @include box-sizing(border-box);
+  height: #{px-to-em(59px)};
+  margin-top: -#{px-to-em(59px)};
+  margin-right: -$base-leader;
+  line-height: #{px-to-em(59px)};
+  text-align: center;
+
+  @include respond(medium) {
+    margin-top: 0;
+  }
+}
+
+.menu-trigger {
+  @include box-sizing(border-box);
+  display: inline-block;
+  margin: 0;
+  width: ($base-rhythm-unit * 2) + ($base-leader * 2);
+  height: ($base-rhythm-unit * 1.64) + ($base-leader * 2);
+  background: $color-menu none no-repeat center center;
+  text-indent: -999em;
+
+  &:hover {
+    background-color: tint($color-menu, 20);
+  }
+}
+
+.trigger-main-menu {
+  background-image: inline-image("icon-menu.svg");
+}
+
+.trigger-secondary-menu {
+  background-image: inline-image("icon-user.svg");
+}
+
+.trigger-block-search-form {
+  background-image: inline-image("icon-search.svg");
+}
+
+.trigger-block-commerce-cart-cart {
+  background-image: inline-image("icon-cart.svg");
+}
+
+.trigger-active {
+  position: relative;
+  background-color: tint($color-menu, 10);
+
+  &::after {
+    content: '';
+    display: block;
+    position: absolute;
+    left: 50%;
+    margin-left: -$base-leader;
+    width: auto;
+    height: 0;
+    border: $base-leader solid transparent;
+    border-top-color: tint($color-menu, 10);
+  }
+
+  &:hover {
+    &::after {
+      border-top-color: tint($color-menu, 20);
+    }
+  }
+}
+
+[class*="collapsible-menu"],
+[class*="collapsible-block"] {
+  .block-title {
+    margin-top: 0;
+  }
+}
+
+.menu-closed {
+  position: absolute;
+  visibility: hidden;
+  opacity: 0;
+}
+
+.menu-active {
+  margin-top: 0;
+  visibility: visible;
+  opacity: 1;
+}
+

@@ -1,0 +1,168 @@
+<?php
+/**
+ * @file
+ * Code for the Assemble feature.
+ */
+
+include_once 'assemble.features.inc';
+
+/**
+ *  Implements hook_post_features_enable_feature().
+ */
+function assemble_post_features_enable_feature($component) {
+  // Log components as they are enabled.
+  watchdog('component', 'assemble enabled ' . $component . ' component');
+}
+
+/**
+ * Implements hook_pre_features_rebuild().
+ */
+function assemble_pre_features_rebuild($component) {
+  if ($component == 'user_permission') {
+    drupal_static_reset('panelizer_entity_plugin_get_handler');
+  }
+}
+
+/**
+ * Implements hook_entity_info_alter().
+ */
+function assemble_entity_info_alter(&$entity_info) {
+
+  // Alternate Preview view mode for files.
+  $entity_info['file']['view modes']['alt_preview'] = array(
+    'label' => t('Alternate Preview'),
+    'custom settings' => TRUE,
+  );
+
+  $fpp_types = _assemble_fpp_types();
+  foreach ($fpp_types as $type => $info) {
+    $entity_info['fieldable_panels_pane']['bundles'][$type] = array(
+      'label' => t('Add @title', array('@title' => $info['title'])),
+      'pane category' => t('Custom'),
+      'pane top level' => TRUE,
+      'pane icon' => drupal_get_path('module', 'assemble') . '/images/' . $info['icon'],
+      'admin' => array(
+        'path' => 'admin/structure/fieldable-panels-panes/manage/%fieldable_panels_panes_type',
+        'bundle argument' => 4,
+        'real path' => 'admin/structure/fieldable-panels-panes/manage/' . $info['path'],
+        'access arguments' => array('administer fieldable panels panes'),
+      ),
+    );
+  }
+
+}
+
+/**
+ * Helper function to define our custom Fielable Panels Panes.
+ */
+function _assemble_fpp_types() {
+  $types = array(
+    'raw_html' => array(
+      'title' => 'HTML',
+      'icon' => 'icon_html.png',
+      'path' => 'raw-html',
+    ),
+    'quick_links' => array(
+      'title' => 'links',
+      'icon' => 'icon_link.png',
+      'path' => 'quick-links',
+    ),
+    'media_pane' => array(
+      'title' => 'media',
+      'icon' => 'icon_media.png',
+      'path' => 'media',
+    ),
+    'map' => array(
+      'title' => 'map',
+      'icon' => 'icon_map.png',
+      'path' => 'map',
+    ),
+    'text' => array(
+      'title' => 'text',
+      'icon' => 'icon_text.png',
+      'path' => 'text',
+    ),
+  );
+  return $types;
+}
+
+/**
+ * Implementation of hook_form_alter()
+ */
+function assemble_form_alter(&$form, &$form_state, $form_id) {
+
+  if ($form_id == 'fieldable_panels_panes_fieldable_panels_pane_content_type_edit_form') {
+
+    // Add fields to the FPP object if we are adding a reusable object for the first time
+    if ($form_state['entity']->reusable && $form_state['op'] == 'add' && $form_state['rebuild'] == FALSE) {
+      $form = fieldable_panels_panes_entity_edit_form($form, $form_state);
+    }
+
+    // Retrieve list of our custom Fieldable Panels Panes bundles.
+    $fpp_types = _assemble_fpp_types();
+    $fpp_info = $fpp_types[$form['#bundle']];
+
+    // Add a custom pre-render method to deal with "Content Settings" fieldset.
+    $form['#pre_render'][] = 'assemble_fieldable_panel_pane_pre_render';
+    
+    // Remove the revisioning information
+    $form['revision']['revision']['#type'] = 'value';
+    $form['revision']['log']['#access'] = FALSE;
+
+    // Add a widget setting
+    $form['widget_settings']['#type'] = 'fieldset';
+    $form['widget_settings']['#title'] = t('General Settings');
+    $form['title']['#attributes']['placeholder'] = $form['title']['#title'];
+    $form['title']['#title_display'] = 'invisible';
+    $form['widget_settings']['title'] = $form['title'];
+    unset($form['title']);
+
+    // Move the link field into the general settings tab.
+    $form['widget_settings']['link'] = $form['link'];
+    unset($form['link']);
+
+    // Improve the reusable interface
+    $form['reusable']['#title'] = t('Reusable Settings');
+    $form['reusable']['#type'] = 'fieldset';
+    $form['reusable']['#process'] = array('ctools_dependent_process');
+    $form['reusable']['#id'] = 'reusable-settings';
+    $form['reusable']['category']['#value'] = t("Reusable @name", array('@name' => $fpp_info['title']));
+    $form['reusable']['category']['#type'] = 'value';
+    $form['reusable']['admin_description']['#access'] = FALSE;
+    // Set the proper dependencies for the reusable markup
+    $form['reusable']['warning']['#dependency'] = array('edit-reusable' => array(1));
+    $form['reusable']['warning']['#prefix'] = '<div id="reusable-wrapper">';
+    $form['reusable']['warning']['#suffix'] = '</div>';
+    $form['reusable']['warning']['#type'] = 'item';
+
+    // Update the text for the reusable markup
+    $form['reusable']['warning']['#markup'] = '<div class="description">' . t('Note: This item is reusable. Any changes made will be applied globally.') . '</div>';
+  }
+
+}
+
+/**
+ * Implement the "Content Settings" fieldset in a pre-render. 
+ * This fixes issues with image caused by initially doing this in a form_alter.
+ *
+ * @see http://drupal.org/node/1567704
+ */
+function assemble_fieldable_panel_pane_pre_render($element) {
+  // Add a content settings fieldset.
+  $element['content_settings'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Content Settings'),
+    '#weight' => 1,
+  );
+
+  // Add any remaining fields to the content settings fieldset.
+  foreach ($element as $key => $value) {
+    if (substr($key, 0, 6) == 'field_' || $key == 'body') {
+      $element['content_settings'][$key] = $value;
+      unset($element[$key]);
+    }
+  }
+
+  return $element;
+}
+

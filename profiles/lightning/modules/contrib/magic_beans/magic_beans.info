@@ -1,0 +1,14 @@
+name = Magic Beans
+description = Turns regular Beans into Magic Beans.
+core = 7.x
+dependencies[] = ctools
+dependencies[] = bean
+dependencies[] = panels
+
+
+
+; Information added by drush on 2014-04-21
+version = ""
+project = "magic_beans"
+datestamp = "1398106476"
+

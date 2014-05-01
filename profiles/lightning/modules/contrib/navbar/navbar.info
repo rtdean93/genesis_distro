@@ -1,0 +1,13 @@
+name = Mobile Friendly Navigation Toolbar
+description = A very simple mobile friendly toolbar that lets you switch between frontend and backend.
+core = 7.x
+
+dependencies[] = libraries (>=2.0)
+
+
+; Information added by drush on 2014-04-21
+version = "7.x-1.2+0-dev"
+core = "7.x"
+project = "navbar"
+datestamp = "1398106515"
+

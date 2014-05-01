@@ -1,0 +1,32 @@
+; Descriptive information
+name = Demonstratie Core
+description = A demonstration theme for the Demo Framework distribution.
+core = 7.x
+
+; Define regions
+regions[page_top] = Page top
+regions[header_first] = Header first
+regions[header_second] = Header second
+regions[search] = Search
+regions[help] = Help
+regions[content] = Content
+regions[feature] = Features
+regions[sidebar_first] = Supplementary first
+regions[sidebar_second] = Supplementary second
+regions[footer_first] = Footer first
+regions[footer_second] = Footer second
+regions[page_bottom] = Page bottom
+
+; Load stylesheets
+stylesheets[all][] = styles/styles.css
+
+; Load scripts
+scripts[] = scripts/demonstratie-core.js
+
+
+; Information added by drush on 2014-04-21
+version = "7.x-1.0-alpha3+18-dev"
+core = "7.x"
+project = "demonstratie"
+datestamp = "1398106434"
+
