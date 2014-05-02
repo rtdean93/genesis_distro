@@ -1,6 +1,16 @@
 # Ignore configuration files that may contain sensitive information.
-sites/*/settings*.php
+sites/*/local.settings.php
 
 # Ignore paths that contain user-generated content.
 sites/*/files
 sites/*/private
+
+# IDE specific files to ignore.
+# PHPStorm project directory.
+.idea
+# Aptana Studio/Eclipse project files.
+.settings
+.project
+
+# Useless OS files
+.DS_Store
