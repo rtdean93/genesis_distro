@@ -1,0 +1,99 @@
+<?php
+
+/**
+ * @file
+ * Add a link to flush the cache to the navbar.
+ */
+
+/**
+ * Implements hook_init().
+ */
+function navbar_flush_cache_init() {
+  drupal_add_js(drupal_get_path('module', 'navbar_flush_cache') . '/js/navbar_flush_cache.js');
+}
+
+/**
+ * Implements hook_permission().
+ */
+function navbar_flush_cache_permission() {
+  return array(
+    'flush caches' => array(
+      'title' => t('Flush caches'),
+      'description' => t('Access links to flush caches in navbar.'),
+    ),
+  );
+}
+
+/**
+ * Implements hook_menu().
+ */
+function navbar_flush_cache_menu() {
+  $items['admin/flush-cache'] = array(
+    'title' => 'Flush Cache',
+    'page callback' => 'navbar_flush_cache_flush_cache',
+    'access arguments' => array('flush caches'),
+    'file' => 'navbar_flush_cache.inc',
+    'weight' => -100,
+  );
+
+  $caches = module_invoke_all('navbar_flush_cache_cache_info');
+  foreach ($caches as $name => $cache) {
+    $items['admin/flush-cache/' . $name] = array(
+      'title' => $cache['title'],
+      'page callback' => 'navbar_flush_cache_flush_cache',
+      'page arguments' => array($name),
+      'access arguments' => array('flush caches'),
+      'file' => 'navbar_flush_cache.inc',
+      'weight' => -100,
+    );
+  }
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function navbar_flush_cache_menu_alter(&$items) {
+  // Flush client-side caches whenever the menu is rebuilt.
+  navbar_flush_cache_flush_caches();
+}
+
+/**
+ * Implements hook_menu_link_insert().
+ */
+function navbar_flush_cache_menu_link_insert($link) {
+  // Flush all of our caches to pick up the link.
+  navbar_flush_cache_flush_caches();
+}
+
+/**
+ * Implements hook_menu_link_update().
+ */
+function navbar_flush_cache_menu_link_update($link) {
+  // Flush all of our caches to pick up the link.
+  navbar_flush_cache_flush_caches();
+}
+
+/**
+ * Implements hook_menu_link_delete().
+ */
+function navbar_flush_cache_menu_link_delete($link) {
+  // Flush all of our caches to pick up the link.
+  navbar_flush_cache_flush_caches();
+}
+
+/**
+ * Implements hook_flush_caches().
+ *
+ * Flushes client-side caches.
+ */
+function navbar_flush_cache_flush_caches($uid = NULL) {
+  $cid = 'navbar_menu:';
+  if (isset($uid)) {
+    $cid .= $uid . ':';
+  }
+
+  // Flush client-side cache hashes.
+  drupal_static_reset('navbar_flush_cache_cache_get');
+}

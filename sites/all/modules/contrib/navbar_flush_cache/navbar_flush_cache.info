@@ -1,0 +1,13 @@
+name = Navbar Flush Cache
+description = Provide flush cache links in navbar
+core = 7.x
+package = Other
+
+dependencies[] = navbar
+
+; Information added by drupal.org packaging script on 2013-10-01
+version = "7.x-1.x-dev"
+core = "7.x"
+project = "navbar_flush_cache"
+datestamp = "1380592699"
+
