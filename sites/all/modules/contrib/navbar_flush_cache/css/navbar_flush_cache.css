@@ -1,0 +1,14 @@
+.navbar-icon-flush-cache:before {
+    background-image: url("../icons/glyphicons_001_leaf.png");
+  }
+.no-svg .navbar-icon-flush-cache:before {
+        background-image: url("../icons/glyphicons_001_leaf.png");
+    }
+.navbar-icon-flush-cache:active:before,
+.navbar-icon-flush-cache.navbar-active:before {
+          background-image: url("../icons/glyphicons_001_leaf.png");
+      }
+.no-svg .navbar-icon-flush-cache:active:before,
+.no-svg .navbar-icon-flush-cache.navbar-active:before {
+            background-image: url("../icons/glyphicons_001_leaf.png");
+        }

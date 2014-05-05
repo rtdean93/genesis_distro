@@ -10,6 +10,7 @@
  */
 function navbar_flush_cache_init() {
   drupal_add_js(drupal_get_path('module', 'navbar_flush_cache') . '/js/navbar_flush_cache.js');
+  drupal_add_css(drupal_get_path('module', 'navbar_flush_cache') . '/css/navbar_flush_cache.css');
 }
 
 /**
