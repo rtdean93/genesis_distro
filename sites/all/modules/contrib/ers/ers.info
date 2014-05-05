@@ -1,0 +1,12 @@
+name = "Entity revision scheduler"
+description = "Allows setting a revision on an entity current at a scheduled time."
+core = 7.x
+dependencies[] = ctools
+configure = admin/config/content/ers
+
+; Information added by drupal.org packaging script on 2013-09-30
+version = "7.x-1.0-beta1+11-dev"
+core = "7.x"
+project = "ers"
+datestamp = "1380577277"
+

@@ -1,0 +1,100 @@
+<?php
+/**
+ * @file
+ * Contains database schema for the Entity Revision Scheduler module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function ers_schema() {
+  $schema = array();
+
+  $schema['ers_schedule'] = array(
+    'description' => 'Schedule table for entity revisions.',
+    'fields' => array(
+      'schedule_id' => array(
+        'description' => 'The primary identifier for this schedule entry.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'entity_type' => array(
+        'description' => 'The type of the entity to schedule; e.g. node, user.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'entity_id' => array(
+        'description' => 'The id of the entity to schedule.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+      ),
+      'revision_id' => array(
+        'description' => 'The revision id of the entity to make current.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+      ),
+      'publish_date' => array(
+        'description' => 'The Unix timestamp when the entity was created.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+      ),
+      'completed' => array(
+        'description' => 'A boolean to indicate if this schedule has been executed.',
+        'type' => 'int',
+        'size' => 'tiny',
+        'default' => 0,
+      ),
+    ),
+    'primary key' => array('schedule_id'),
+    'indexes' => array(
+      'entity' => array('entity_type', 'entity_id'),
+      'date' => array('completed', 'publish_date'),
+    ),
+  );
+
+  $schema['ers_entity_state'] = array(
+    'description' => 'Entity state table that tracks what the "published" and "draft" revisions are.',
+    'fields' => array(
+      'state_id' => array(
+        'description' => 'The primary identifier for this schedule entry.',
+        'type' => 'serial',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+      ),
+      'entity_type' => array(
+        'description' => 'The type of the entity to schedule; e.g. node, user.',
+        'type' => 'varchar',
+        'length' => 255,
+      ),
+      'entity_id' => array(
+        'description' => 'The id of the entity to schedule.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+      ),
+      'published_revision_id' => array(
+        'description' => 'The revision id that is currently published.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+      ),
+      'draft_revision_id' => array(
+        'description' => 'The revision id that should be edited as a draft.',
+        'type' => 'int',
+        'unsigned' => TRUE,
+      ),
+    ),
+    'primary key' => array('state_id'),
+    'indexes' => array(
+      'entity' => array('entity_type', 'entity_id'),
+    ),
+  );
+
+  return $schema;
+}
+
+function ers_uninstall() {
+  // Delete the variable(s) that control which bundles are configured.
+  db_query("DELETE FROM {variable} WHERE name LIKE 'ers_entity_bundle_%'");
+}

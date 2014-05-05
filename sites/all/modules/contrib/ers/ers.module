@@ -1,0 +1,970 @@
+<?php
+/**
+ * @file
+ * Provides core features for scheduling entity revisions.
+ */
+
+// -----------------------------------------------------------------------
+// Drupal core hooks
+
+/**
+ * Implements hook_permission().
+ */
+function ers_permission() {
+  $items = array(
+    'administer ers' => array(
+      'title' => t('Administer entity revision scheduler'),
+      'description' => t('Allows a user to administer settings for the entity revision scheduler.'),
+    ),
+    'ers preview schedule' => array(
+      'title' => t('Preview entity schedule'),
+      'description' => t('Allows a user to preview the future schedule of entities using the Preview schedule block.'),
+    ),
+  );
+
+  // Delegate.
+  foreach (ers_get_plugins_with_hook('permission') as $handler) {
+    $handler->hook_permission($items);
+  }
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu().
+ */
+function ers_menu() {
+  $items = array();
+  // Create menu item to configure which bundles are revisioned.
+  $items['admin/config/content/ers'] = array(
+    'title' => t('Entity revision scheduler'),
+    'description' => t('Configure what entities can be controlled with entity revision scheduler.'),
+    'page callback' => 'ers_settings_page',
+    'file' => 'ers.pages.inc',
+    'type' => MENU_NORMAL_ITEM,
+    'access arguments' => array('administer ers'),
+  );
+
+  // Delegate.
+  foreach (ers_get_plugins_with_hook('menu') as $handler) {
+    $handler->hook_menu($items);
+  }
+
+  return $items;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function ers_menu_alter(&$items) {
+  // Delegate.
+  foreach (ers_get_plugins_with_hook('menu_alter') as $handler) {
+    $handler->hook_menu_alter($items);
+  }
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function ers_form_alter(&$form, &$form_state, $form_id) {
+  // Delegate.
+  foreach (ers_get_plugins_with_hook('form_alter') as $handler) {
+    $handler->hook_form_alter($form, $form_state, $form_id);
+  }
+}
+
+/**
+ * Implements hook_cron().
+ */
+function ers_cron() {
+  // Query a list of actions
+  $schedules = db_query("SELECT * FROM {ers_schedule} WHERE publish_date < :now AND completed = 0", array(':now' => time()))->fetchAllAssoc('schedule_id');
+
+  foreach ($schedules as $schedule) {
+    if ($handler = ers_entity_plugin_get_handler($schedule->entity_type)) {
+      $handler->execute_schedule($schedule);
+    }
+  }
+}
+
+/**
+ * Implements hook_entity_load().
+ */
+function ers_entity_load(&$entities, $entity_type) {
+  // Delegate to the handler.
+  if ($handler = ers_entity_plugin_get_handler($entity_type)) {
+    $handler->hook_entity_load($entities);
+  }
+}
+
+/**
+ * Implements hook_entity_presave().
+ */
+function ers_entity_presave($entity, $entity_type) {
+  // Delegate to the handler.
+  if ($handler = ers_entity_plugin_get_handler($entity_type)) {
+    $handler->hook_entity_presave($entity);
+  }
+}
+
+/**
+ * Implements hook_entity_update().
+ */
+function ers_entity_update($entity, $entity_type) {
+  // Delegate to the handler.
+  if ($handler = ers_entity_plugin_get_handler($entity_type)) {
+    $handler->hook_entity_update($entity);
+  }
+}
+
+/**
+ * Implements hook_entity_insert().
+ */
+function ers_entity_insert($entity, $entity_type) {
+  // Delegate to the handler.
+  if ($handler = ers_entity_plugin_get_handler($entity_type)) {
+    $handler->hook_entity_insert($entity);
+  }
+}
+
+/**
+ * Implements hook_entity_delete().
+ */
+function ers_entity_delete($entity, $entity_type) {
+  // Delegate to the handler.
+  if ($handler = ers_entity_plugin_get_handler($entity_type)) {
+    $handler->hook_entity_delete($entity);
+  }
+}
+
+/**
+ * Implements hook_field_attach_delete_revision().
+ */
+function ers_field_attach_delete_revision($entity_type, $entity) {
+  // Delegate to the handler.
+  if ($handler = ers_entity_plugin_get_handler($entity_type)) {
+    $handler->hook_field_attach_delete_revision($entity);
+  }
+}
+
+/**
+ * Implements hook_exit().
+ */
+function ers_exit() {
+  $saved = &drupal_static('ers_set_entity_saved', array());
+  foreach ($saved as $entity_type => $entities) {
+    // Load the plugin handler
+    if ($handler = ers_entity_plugin_get_handler($entity_type)) {
+      foreach ($entities as $entity_id => $entity) {
+        $handler->ers_revision_reset = TRUE;
+        $handler->set_published_revision_current($entity_id, $entity);
+        $handler->ers_revision_reset = FALSE;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_block_list().
+ */
+function ers_block_info() {
+  return array(
+    'preview-schedule' => array(
+      'info' => t('Preview schedule widget'),
+      'cache' => DRUPAL_NO_CACHE,
+      'properties' => array('administrative' => TRUE),
+      'status' => TRUE,
+      'region' => 'sidebar_first',
+    ),
+  );
+}
+
+/**
+ * Implements hook_block_view().
+ */
+function ers_block_view($delta = '') {
+  switch ($delta) {
+    case 'preview-schedule':
+      return array(
+        'subject' => t('Preview schedule'),
+        'content' => ers_preview_schedule_widget(),
+      );
+  }
+}
+
+// -----------------------------------------------------------------------
+// Panels and CTools hooks
+
+/**
+ * Implements hook_ctools_plugin_type()
+ */
+function ers_ctools_plugin_type() {
+  $items['entity'] = array(
+    'cache' => FALSE,
+    'process' => array(
+      'function' => 'ers_entity_plugin_process',
+    ),
+    'classes' => array('handler'),
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_ctools_plugin_directory()
+ */
+function ers_ctools_plugin_directory($module, $plugin) {
+  if ($module == 'ers' || $plugin == 'content_types') {
+    return 'plugins/' . $plugin;
+  }
+}
+
+/**
+ * Implement hook_panels_pane_content_alter().
+ *
+ * This adds the contextual link to the entity field pane.
+ */
+function ers_panels_pane_content_alter(&$content, $pane, $args, $context) {
+  // Don't bother with empty panes.
+  if (empty($content->content)) {
+    return;
+  }
+
+  // Delegate.
+  foreach (ers_get_plugins_with_hook('panels_pane_content_alter') as $handler) {
+    $handler->hook_panels_pane_content_alter($content, $pane, $args, $context);
+  }
+}
+
+// -----------------------------------------------------------------------
+// CTools entity plugin support code
+
+/**
+ * CTools process callback for an entity plugin.
+ *
+ * This adds configuration data to the plugin so that we know what
+ * bundles it is enabled for.
+ */
+function ers_entity_plugin_process(&$plugin, $info) {
+  $entity_type = $plugin['name'];
+  $plugin['bundles'] = variable_get('ers_entity_bundle_' . $entity_type, array());
+  if (!isset($plugin['edit paths'])) {
+    $plugin['edit paths'] = array();
+  }
+
+  drupal_alter('ers_entity_plugin_process', $plugin, $info);
+
+  // Convert the edit paths array into something formatted nicely for
+  // drupal_match_path
+  $plugin['edit paths match'] = implode("\n", $plugin['edit paths']);
+}
+
+/**
+ * Fetch a single entity plugin.
+ */
+function ers_get_entity_plugin($entity_type) {
+  ctools_include('plugins');
+  return ctools_get_plugins('ers', 'entity', $entity_type);
+}
+
+/**
+ * Fetch all entity plugin.
+ */
+function ers_get_entity_plugins() {
+  ctools_include('plugins');
+  return ctools_get_plugins('ers', 'entity');
+}
+
+/**
+ * Get the class to handle custom code for a given entity type plugin.
+ *
+ * If a plugin does not define a class at all, then the default class
+ *
+ * @return
+ *   Either the instantiated handler or FALSE if one could not be had.
+ */
+function ers_entity_plugin_get_handler($plugin) {
+  $cache = &drupal_static(__FUNCTION__, array());
+  if (is_string($plugin)) {
+    $plugin = ers_get_entity_plugin($plugin);
+    if (!$plugin) {
+      return FALSE;
+    }
+  }
+
+  // Get the class name from the 'handler' property if we have not already
+  // cached a handler.
+  if (empty($cache[$plugin['name']]) && ($class = ctools_plugin_get_class($plugin, 'handler'))) {
+    // @todo is there a good reason to use ->init instead of __construct?
+    $cache[$plugin['name']] = new $class();
+    $cache[$plugin['name']]->init($plugin);
+  }
+  return !empty($cache[$plugin['name']]) ? $cache[$plugin['name']] : FALSE;
+}
+
+/**
+ * Fetch handler objects for all plugins that implement the named hook.
+ *
+ * These plugins must set $plugin['hooks'][$hook] = TRUE in order to
+ * be instantiated.
+ *
+ * This is only called for system wide hooks such as hook_menu and
+ * hook_menu_alter; entity specific hooks will always be called.
+ */
+function ers_get_plugins_with_hook($hook) {
+  $objects = array();
+  $plugins = ers_get_entity_plugins();
+  foreach ($plugins as $entity_type => $plugin) {
+    if (!empty($plugin['hooks'][$hook])) {
+      if ($handler = ers_entity_plugin_get_handler($plugin)) {
+        $objects[$entity_type] = $handler;
+      }
+    }
+  }
+
+  return $objects;
+}
+
+/**
+ * Page callback for entity menu callbacks.
+ *
+ * This function is to be used as a menu callback for menu items that
+ * are to be handled by a method on the handler object. It loads the object
+ * defined in the plugin and hands it off to a method based upon the name
+ * of the operation in use.
+ *
+ * For example, if the 'op' is 'revision' then the callback method will be
+ * 'page_revisions', with all of the arguments *except* the $op and the
+ * plugin name.
+ */
+function ers_entity_plugin_switcher_page($entity_type, $op) {
+  $args = func_get_args();
+  $js = !empty($_REQUEST['js']);
+
+  // Load the $plugin information
+  if ($handler = ers_entity_plugin_get_handler($entity_type)) {
+    $method = 'page_' . $op;
+    if (method_exists($handler, $method)) {
+      // replace the first two arguments:
+      $args[0] = $js;
+      $args[1] = $_POST;
+      return call_user_func_array(array($handler, $method), $args);
+    }
+  }
+  else {
+    return t('Configuration error. No handler found.');
+  }
+}
+
+/**
+ * Callback used for determining if a user can access something via
+ * the plugin.
+ */
+function ers_entity_plugin_access_switcher($entity_type, $op) {
+  $args = func_get_args();
+  if (count($args) < 2) {
+    return FALSE;
+  }
+  $entity_type = array_shift($args);
+  $op = array_shift($args);
+
+  // Load the $plugin information
+  if ($handler = ers_entity_plugin_get_handler($entity_type)) {
+    $method = 'access_' . $op;
+    if (method_exists($handler, $method)) {
+      return call_user_func_array(array($handler, $method), $args);
+    }
+  }
+  else {
+    return FALSE;
+  }
+}
+
+// -----------------------------------------------------------------------
+// Public API
+
+/**
+ * Record that an entity needs to have its current revision reset.
+ *
+ * When an entity is saved, the 'current' revision is always what is
+ * written. However, when we save a draft, we really want the
+ * 'published' revision current. This flags the entity so that we can
+ * write the correct entity values as current during hook_exit.
+ */
+function ers_set_entity_saved($entity_type, $entity_id, $entity) {
+  $saved = &drupal_static('ers_set_entity_saved', array());
+  $saved[$entity_type][$entity_id] = $entity;
+}
+
+/**
+ * Record that the page has loaded entities with future schedules
+ *
+ * ERS provides a widget to preview future pages. This commuincates to
+ * that widget that it should be allowed to appear.
+ */
+function ers_set_entity_scheduled($entity_type, $entity_id, $entity) {
+  // Don't bother recording if the user can't make use of the preview widget.
+  if (user_access('ers preview schedule')) {
+    $scheduled = &drupal_static('ers_set_entity_scheduled', array());
+    $scheduled[$entity_type][$entity_id] = $entity;
+  }
+}
+
+/**
+ * Record that we are on some controlled entity's edit path
+ *
+ * We don't allow schedule from an edit path because we can't load both
+ * entities simultaneously and we can't reliably know where to attempt to go
+ * if there are multiple entities available, so they'll have to do it from
+ * the regular 'view'.
+ */
+function ers_set_on_edit_path($status = TRUE) {
+  $edit_path_status = &drupal_static('ers_set_on_edit_path', FALSE);
+  $edit_path_status = TRUE;
+}
+
+/**
+ * Scheduling widget that can be placed inside other forms.
+ *
+ * This is not a complete form by itself, it does not include
+ * a submit button.
+ *
+ * Note that this also does not know what revision id is being
+ * scheduled, because this form could be embedded in the entity
+ * edit form where a new revision ID would be created. That means
+ * that the revision ID on the entity is the one that will be used.
+ *
+ * Because of the difficulty in finding the entity, and not wanting to
+ * deal with a cached entity in form caching, the submit function will
+ * need to be also be added by the caller.
+ *
+ * For now, #tree must not be set to true.
+ *
+ * @param $entity_type
+ *   The entity type and pluginname to use.
+ * @param $entity
+ *   The fully instantiated entity.
+ * @param $options
+ *   An array of options:
+ *   - selector: Whether or not to display the publish selector. Set to
+ *     false if the user does not have permission to set this.
+ *   - selector_title: If displaying the checkbox, the title to use.
+ *     Will defalt to "Publish draft".
+ *   - schedule_title: The title to use for the schedule form.
+ *   - schedule_description: The descripton to use for the schedule form.
+ */
+function ers_entity_schedule_form($entity_type, $entity, $options = array()) {
+  list($entity_id, $revision_id, $bundle) = entity_extract_ids($entity_type, $entity);
+
+  if (!user_access("publish $entity_type $bundle content")) {
+    return array();
+  }
+
+  $handler = ers_entity_plugin_get_handler($entity_type);
+
+  // Set default options.
+  $options += array(
+    'checkbox' => TRUE,
+    'selector' => TRUE,
+    'schedule_title' => t('Scheduled time'),
+    'schedule_description' => t('Leave blank to do this immediately.'),
+  );
+
+  $form['ers_schedule_add'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Schedule'),
+    '#default_value' => FALSE,
+  );
+
+  if (!$options['checkbox']) {
+    $form['ers_schedule_add']['#access'] = FALSE;
+    $form['ers_schedule_add']['#value'] = TRUE;
+  }
+
+  $form['ers'] = array(
+    '#type' => 'container',
+    '#states' => array(
+      'visible' => array(
+        ':input[name="ers_schedule_add"]' => array('checked' => TRUE),
+      ),
+    ),
+  );
+
+  if ($handler->supports_publishing_flag) {
+    $form['ers']['ers_schedule_selector'] = array(
+      '#type' => 'radios',
+      '#default_value' => 'publish',
+      '#options' => array(
+        'publish' => t('Publish'),
+        'unpublish' => t('Unpublish'),
+      ),
+    );
+    if (!$options['selector']) {
+      $form['ers']['ers_schedule_selector']['#access'] = FALSE;
+      // Set default to 'publish' if no selector is available, it should be
+      // overriden when invoking this form, as needed.
+      $form['ers']['ers_schedule_selector']['#value'] = 'publish';
+    }
+  }
+  $form['ers']['ers_schedule_time'] = array(
+    '#type' => 'textfield',
+    '#title' => $options['schedule_title'],
+    '#maxlength' => 25,
+    '#description' => t('Format: %time. The date format is YYYY-MM-DD and %timezone is the time zone offset from UTC.', array('%time' => format_date(time(), 'custom', 'Y-m-d H:i:s O'), '%timezone' => format_date(time(), 'custom', 'O'))) . ' ' . $options['schedule_description'],
+  );
+
+  if (empty($revision_id) && !$handler->supports_publishing_flag) {
+    // If there is no revision id yet, the first revision MUST be the published
+    // So hide the scheduling widget.
+    $form['#access'] = FALSE;
+    return $form;
+  }
+
+  if (module_exists('date_popup')) {
+    $form['ers']['ers_schedule_time']['#type'] = 'date_popup';
+    $form['ers']['ers_schedule_time']['#description'] = $options['schedule_description'];
+    unset($form['ers']['ers_schedule_time']['#maxlength']);
+  }
+
+  if (!empty($revision_id) && !empty($entity->ers_schedule[$revision_id])) {
+    $schedule = $entity->ers_schedule[$revision_id];
+    $form['ers_schedule_add']['#default_value'] = TRUE;
+    if (module_exists('date_popup')) {
+      $date = new DateObject($schedule->publish_date);
+      $form['ers']['ers_schedule_time']['#default_value'] = $date->format(DATE_FORMAT_DATETIME);
+    }
+    else {
+      $form['ers']['ers_schedule_time']['#default_value'] = format_date($schedule->publish_date, 'custom', 'Y-m-d H:i:s O');
+    }
+  }
+
+  // If there is already a schedule for this revision, fill in the default values.
+  return $form;
+}
+
+/**
+ * Submission of the ers entity schedule form.
+ *
+ * Because we can't easily locate the entity automatically, this must be
+ * called by the master form submit for us to handle scheduling.
+ *
+ * All it does is add the schedule to the entity and allows the entity save to
+ * handle writing the schedule. If the entity will not be saved, the caller
+ * is responsible for the drupal_write_record() necessary to do this.
+ */
+function ers_entity_schedule_form_submit($form, &$form_state, $entity_type, &$entity) {
+  list($entity_id, $revision_id, $bundle) = entity_extract_ids($entity_type, $entity);
+
+  if (!user_access("publish $entity_type $bundle content")) {
+    return;
+  }
+
+  $schedule_add = drupal_array_get_nested_value($form_state['values'], $form['ers_schedule_add']['#parents']);
+
+  if (empty($schedule_add)) {
+    if (!empty($entity->ers_schedule[$revision_id])) {
+      $entity->ers_remove_schedule = TRUE;
+    }
+    $entity->ers_schedule_revision_id = $revision_id;
+    return;
+  }
+
+  $schedule_time = drupal_array_get_nested_value($form_state['values'], $form['ers']['ers_schedule_time']['#parents']);
+
+  if (!$schedule_time) {
+    $schedule_time = time();
+  }
+  else {
+    if (module_exists('date_popup')) {
+      $date = new DateObject($schedule_time);
+      $schedule_time = $date->format(DATE_FORMAT_UNIX);
+    }
+    else {
+      $schedule_time = strtotime($schedule_time);
+    }
+  }
+
+  $entity->ers_new_schedule = $schedule_time;
+
+  // Set the current schedule id, or 0 for unpublishing. And propagate this
+  // variable to be used on hook_entity_insert().
+  $handler = ers_entity_plugin_get_handler($entity_type);
+  if ($handler->supports_publishing_flag) {
+    $schedule_selector = drupal_array_get_nested_value($form_state['values'], $form['ers']['ers_schedule_selector']['#parents']);
+    $entity->ers_schedule_revision_id = ($schedule_selector == 'publish' ? $revision_id : 0);
+  }
+  else {
+    $entity->ers_schedule_revision_id = $revision_id;
+  }
+}
+
+/**
+ * A full form for publishing or scheduling an entity revision.
+ */
+function ers_entity_schedule_full_form($form, &$form_state, $entity_type, $entity, $new_revision_id) {
+  // reload the proper revision.
+  list($entity_id, $revision_id, $bundle) = entity_extract_ids($entity_type, $entity);
+  /* @todo -- I'm not sure why I had this here. NOt deleting in case it
+     turns out it was needed, but this was breaking fieldable panel pane saves.
+  $entity_info = entity_get_info($entity_type);
+  $revision_key = $entity_info['entity keys']['revision'];
+
+  $revisions = entity_load($entity_type, array($entity_id), array($revision_key => $new_revision_id));
+  $entity = $revisions[$entity_id];
+  */
+
+  $options = array(
+    'checkbox' => FALSE,
+    'selector' => FALSE,
+    'checkbox_title' => t('Publish on'),
+    'schedule_description' => t('Leave blank to publish this draft immediately.'),
+  );
+
+  $form += ers_entity_schedule_form($entity_type, $entity, $options);
+  $form_state['entity'] = $entity;
+  $form_state['entity_type'] = $entity_type;
+  $form_state['new_revision_id'] = $new_revision_id;
+  return confirm_form($form, t('Publish revision'), entity_uri($entity_type, $entity), '', t('Schedule'), t('Cancel'));
+}
+
+/**
+ * Submit and publish the scheduled revision.
+ */
+function ers_entity_schedule_full_form_submit($form, &$form_state) {
+  $entity_type = $form_state['entity_type'];
+  $entity = $form_state['entity'];
+  list($entity_id, $revision_id, $bundle) = entity_extract_ids($entity_type, $entity);
+
+  ers_entity_schedule_form_submit($form, $form_state, $entity_type, $entity);
+
+  $handler = ers_entity_plugin_get_handler($entity_type);
+  $handler->update_entity_schedule($entity, $entity->ers_new_schedule, $form_state['new_revision_id']);
+
+  // If this was an immediate publication we have to update the entity state
+  // as well.
+  if ($entity->ers_new_schedule <= time()) {
+    $entity->ers_retain_draft = TRUE;
+    $handler->update_entity_state($entity);
+
+    // We also need to make sure this gets saved later so that the published
+    // flag is correct in this case.
+    if ($handler->supports_publishing_flag) {
+      ers_set_entity_saved($entity_type, $entity_id, $entity);
+    }
+
+  }
+}
+
+/**
+ * A confirm form for scheduling unpublishing a revision.
+ */
+function ers_entity_schedule_unpublish_form($form, &$form_state, $entity_type, $entity, $new_revision_id) {
+  // Reload the proper revision.
+  list($entity_id, $revision_id, $bundle) = entity_extract_ids($entity_type, $entity);
+
+  $options = array(
+    'checkbox' => FALSE,
+    'selector' => FALSE,
+    'checkbox_title' => t('Unpublish on'),
+    'schedule_description' => t('Leave blank to unpublish this draft immediately.'),
+  );
+
+  $form += ers_entity_schedule_form($entity_type, $entity, $options);
+  $form['ers']['ers_schedule_selector']['#value'] = 'unpublish';
+  $form_state['entity'] = $entity;
+  $form_state['entity_type'] = $entity_type;
+  $form_state['new_revision_id'] = 0;
+  return confirm_form($form, t('Unpublish revision'), entity_uri($entity_type, $entity), '', t('Schedule'), t('Cancel'));
+}
+
+/**
+ * Submit and upublish the revision.
+ */
+function ers_entity_schedule_unpublish_form_submit($form, &$form_state) {
+  ers_entity_schedule_full_form_submit($form, $form_state);
+}
+
+/**
+ * Callback used for setting the proper title on entity edit tabs.
+ *
+ * This ensures that the entity bundle is under control; if it is it makes
+ * the title to 'Edit draft' otherwise it makes it 'Edit'.
+ */
+function ers_entity_edit_title_callback($entity_type, $entity) {
+  $plugin = ers_get_entity_plugin($entity_type);
+  list($entity_id, $revision_id, $bundle) = entity_extract_ids($entity_type, $entity);
+
+  if (empty($plugin['bundles'][$bundle])) {
+    return t('Edit');
+  }
+  else {
+    return t('Edit draft');
+  }
+}
+
+/**
+ * Widget to allow previewing of the schedule.
+ *
+ * This properly calls the form and returns nothing if the form should
+ * not exist.
+ */
+function ers_preview_schedule_widget() {
+  if (!user_access('ers preview schedule')) {
+    // no form for people who lack privileges.
+    return;
+  }
+
+  $scheduled = &drupal_static('ers_set_entity_scheduled', array());
+  if (!$scheduled) {
+    // No form if there's nothing scheduled.
+    return;
+  }
+
+  // No widget if on an edit path.
+  if (drupal_static('ers_set_on_edit_path', FALSE)) {
+    return;
+  }
+
+  $form_state = array(
+    'method' => 'get',
+    'no_redirect' => TRUE,
+  );
+
+  return drupal_build_form('ers_preview_schedule_form', $form_state);
+}
+
+/**
+ * Form to allow previewing of the schedule.
+ *
+ * Since everything that was loaded on this page has loaded its schedule, we
+ * simplify things by simply providing a list of all possible schedule changes.
+ * The user can quickly tell when things will change by checking the drop down,
+ * and pick one.
+ *
+ * The form submits via $_GET and hook_entity_load uses this information to
+ * swap out for the future revision. Because it is a $_GET form this form
+ * MUST be called with drupal_build_form and not drupal_get_form or it will
+ * not acquire input from the correct location.
+ */
+function ers_preview_schedule_form($form, &$form_state) {
+  $scheduled = &drupal_static('ers_set_entity_scheduled', array());
+
+  $options = array(
+    0 => t('-- Choose date --')
+  );
+  foreach ($scheduled as $entity_type => $schedules) {
+    foreach ($schedules as $entity_id => $entity) {
+      foreach ($entity->ers_schedule as $revision_id => $schedule) {
+        $options[$schedule->publish_date] = format_date($schedule->publish_date, 'short');
+      }
+    }
+  }
+
+  $form['#method'] = 'get';
+
+  $form['preview-schedule'] = array(
+    '#type' => 'select',
+    '#title' => t('Date'),
+    '#options' => $options,
+  );
+
+  $form['actions'] = array(
+    '#type' => 'actions',
+  );
+  $form['actions']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Preview'),
+  );
+
+  if (!empty($_GET['preview-schedule'])) {
+    $form['actions']['cancel'] = array(
+      '#type' => 'submit',
+      '#value' => t('Reset'),
+      '#reset' => TRUE,
+    );
+  }
+
+  return $form;
+}
+
+/**
+ * Submit callback for ers_preview_schedule_form().
+ */
+function ers_preview_schedule_form_submit($form, &$form_state) {
+  if (!empty($form_state['triggering_element']['#reset'])) {
+    $form_state['no_redirect'] = FALSE;
+  }
+  else {
+    drupal_set_message(t('Showing preview for %date', array('%date' => format_date($form_state['values']['preview-schedule']))));
+  }
+}
+
+/**
+ * For any form that uses the same format as the node form, we can use
+ * this format to alter the form.
+ */
+function ers_basic_revision_form_alter_hook(&$form, &$form_state) {
+  $entity_type = $form_state['entity_type'];
+  $entity = $form_state['entity'];
+
+  // Reset the revision field.
+  if ($entity->published_revision_id == $entity->draft_revision_id) {
+    $form['revision_information']['revision']['#default_value'] = TRUE;
+    $form['revision_information']['revision']['#description'] = t('Creating a new revision will create a draft revision. This revision will not be published until it is published from the revisions tab. Creating a new revision will create a new draft revision only.');
+    $form['revision_information']['revision']['#disabled'] = empty($form_state['ers allow edit revision']);
+  }
+  else {
+    $form['revision_information']['revision']['#default_value'] = FALSE;
+    $form['revision_information']['revision']['#description'] = t('You are currently editing the draft revision. This draft will not be published until it is published from the revisions tab.');
+  }
+
+  // Provide a scheduling widget to schedule this draft.
+  $form['revision_information'] += ers_entity_schedule_form($entity_type, $entity);
+  $form['#submit'][] = 'ers_basic_revision_form_alter_hook_submit';
+}
+
+function ers_basic_revision_form_alter_hook_submit($form, &$form_state) {
+  ers_entity_schedule_form_submit($form['revision_information'], $form_state, $form_state['entity_type'], $form_state['entity']);
+}
+
+// -----------------------------------------------------------------------
+// Integration with fape
+//
+// Since fape adds editing stuff, we're going to pretend to be fape a bit
+// to get its editing stuff under our control.
+if (!function_exists('fape_ers_entity_plugin_process_alter')) {
+  /**
+   * Implements hook_ers_entity_plugin_process_alter().
+   */
+  function fape_ers_entity_plugin_process_alter(&$plugin, $info) {
+    // Add fape edit paths
+    $plugin['edit paths'][] = 'admin/field/edit/' . $plugin['name'] . '/%/*';
+  }
+
+  /**
+   * Implements hook_form_alter.
+   */
+  function fape_form_fape_field_edit_form_alter(&$form, &$form_state, $form_id) {
+    $entity = $form_state['entity'];
+    $entity_type = $form_state['entity_type'];
+    $plugin = ers_get_entity_plugin($entity_type);
+    list($entity_id, $revision_id, $bundle) = entity_extract_ids($entity_type, $entity);
+
+    // Only alter the form for entity bundles under our control.
+    if (empty($plugin['bundles'][$bundle])) {
+      return;
+    }
+
+    ers_basic_revision_form_alter_hook($form, $form_state, $entity);
+  }
+}
+
+// -----------------------------------------------------------------------
+// Integration with panelizer
+//
+// Panelizer 2.x adds revision editing so all of the Panelizer edit
+// screens need to be part of the edit paths.
+
+if (!function_exists('panelizer_ers_entity_plugin_process')) {
+  /**
+   * Implements hook_ers_entity_plugin_process_alter().
+   */
+  function panelizer_ers_entity_plugin_process_alter(&$plugin, $info) {
+    if (!function_exists('panelizer_entity_plugin_get_handler') || $plugin['name'] == 'default') {
+      return;
+    }
+
+    if ($handler = panelizer_entity_plugin_get_handler($plugin['name'])) {
+      $plugin['edit paths'][] = preg_replace('$/\%[^/]*$', '/%', $handler->plugin['entity path']) . '/panelizer*';
+      $plugin['edit paths'][] = 'panels/ajax/*/panelizer*';
+    }
+  }
+
+  /**
+   * Called by the specific form IDs.
+   */
+  function panelizer_generic_form_alter_hook(&$form, &$form_state, $form_id) {
+    if (empty($form_state['entity']) || empty($form_state['use revisions'])) {
+      return;
+    }
+
+    // Todo -- needs to be updated for view modes.
+    return;
+    $form_state['ers allow edit revision'] = TRUE;
+    $entity = $form_state['entity'];
+    // Figure out the entity type.
+    $entity_type = !empty($entity->panelizer->entity_type) ? $entity->panelizer->entity_type : $entity->panelizer->panelizer_type;
+
+    $form_state['entity_type'] = $entity_type;
+    ers_basic_revision_form_alter_hook($form, $form_state, $entity);
+  }
+
+  function panelizer_form_panelizer_settings_form_alter(&$form, &$form_state, $form_id) {
+    panelizer_generic_form_alter_hook($form, $form_state, $form_id);
+  }
+
+  function panelizer_form_panelizer_default_context_form_alter(&$form, &$form_state, $form_id) {
+    panelizer_generic_form_alter_hook($form, $form_state, $form_id);
+  }
+
+  function panelizer_form_panelizer_choose_layout_form_alter(&$form, &$form_state, $form_id) {
+    panelizer_generic_form_alter_hook($form, $form_state, $form_id);
+  }
+
+  function panelizer_form_panelizer_move_content_form_alter(&$form, &$form_state, $form_id) {
+    panelizer_generic_form_alter_hook($form, $form_state, $form_id);
+  }
+
+  function panelizer_form_panelizer_edit_content_form_alter(&$form, &$form_state, $form_id) {
+    panelizer_generic_form_alter_hook($form, $form_state, $form_id);
+  }
+}
+
+// -----------------------------------------------------------------------
+// Integration with Deploy
+
+/**
+ * Implements hook_entity_uuid_load().
+ */
+function ers_entity_uuid_load(&$entities, $entity_type) {
+  // Delegate.
+  foreach (ers_get_plugins_with_hook('entity_uuid_load') as $handler) {
+    $handler->hook_entity_uuid_load($entities, $entity_type);
+  }
+}
+
+/**
+ * Implements hook_entity_uuid_presave().
+ */
+function ers_entity_uuid_presave(&$entity, $entity_type) {
+  // Delegate.
+  foreach (ers_get_plugins_with_hook('entity_uuid_presave') as $handler) {
+    $handler->hook_entity_uuid_presave($entity, $entity_type);
+  }
+}
+
+/**
+ * Implements hook_entity_uuid_save().
+ */
+function ers_entity_uuid_save(&$entity, $entity_type) {
+  // Delegate.
+  foreach (ers_get_plugins_with_hook('entity_uuid_save') as $handler) {
+    $handler->hook_entity_uuid_save($entity, $entity_type);
+  }
+}
+
+/**
+ * Implements hook_deploy_entity_dependencies().
+ */
+function ers_deploy_entity_dependencies($entity, $entity_type) {
+  // Delegate.
+  $result = array();
+  foreach (ers_get_plugins_with_hook('deploy_entity_dependencies') as $handler) {
+    $dependencies = $handler->hook_deploy_entity_dependencies($entity, $entity_type);
+    if (is_array($dependencies)) {
+      $result = array_merge($result, $dependencies);
+    }
+  }
+  return $result;
+}
+
