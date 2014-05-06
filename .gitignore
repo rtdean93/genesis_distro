@@ -14,3 +14,12 @@ sites/*/private
 
 # Useless OS files
 .DS_Store
+
+# Cache files
+cache/*
+cache
+cache/*/normal
+
+# Data Files
+sites/*/data
+
