@@ -1,0 +1,36 @@
+diff --git a/sites/all/modules/contrib/navbar_flush_cache/css/navbar_flush_cache.css b/sites/all/modules/contrib/navbar_flush_cache/css/navbar_flush_cache.css
+new file mode 100644
+index 0000000..90625b5
+--- /dev/null
++++ b/sites/all/modules/contrib/navbar_flush_cache/css/navbar_flush_cache.css
+@@ -0,0 +1,14 @@
++.navbar-icon-flush-cache:before {
++    background-image: url("../icons/glyphicons_001_leaf.png");
++  }
++.no-svg .navbar-icon-flush-cache:before {
++        background-image: url("../icons/glyphicons_001_leaf.png");
++    }
++.navbar-icon-flush-cache:active:before,
++.navbar-icon-flush-cache.navbar-active:before {
++          background-image: url("../icons/glyphicons_001_leaf.png");
++      }
++.no-svg .navbar-icon-flush-cache:active:before,
++.no-svg .navbar-icon-flush-cache.navbar-active:before {
++            background-image: url("../icons/glyphicons_001_leaf.png");
++        }
+diff --git a/sites/all/modules/contrib/navbar_flush_cache/icons/glyphicons_001_leaf.png b/sites/all/modules/contrib/navbar_flush_cache/icons/glyphicons_001_leaf.png
+new file mode 100644
+index 0000000..1ebe8c0
+Binary files /dev/null and b/sites/all/modules/contrib/navbar_flush_cache/icons/glyphicons_001_leaf.png differ
+diff --git a/sites/all/modules/contrib/navbar_flush_cache/navbar_flush_cache.module b/sites/all/modules/contrib/navbar_flush_cache/navbar_flush_cache.module
+index 8781cb1..95004ae 100644
+--- a/sites/all/modules/contrib/navbar_flush_cache/navbar_flush_cache.module
++++ b/sites/all/modules/contrib/navbar_flush_cache/navbar_flush_cache.module
+@@ -10,6 +10,7 @@
+  */
+ function navbar_flush_cache_init() {
+   drupal_add_js(drupal_get_path('module', 'navbar_flush_cache') . '/js/navbar_flush_cache.js');
++  drupal_add_css(drupal_get_path('module', 'navbar_flush_cache') . '/css/navbar_flush_cache.css');
+ }
+ 
+ /**
