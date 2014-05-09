@@ -19,8 +19,10 @@
     <?php foreach ($items as $row): ?>
       <div class="row">
         <?php foreach ($row['content'] as $column): ?>
-          <div class="col col-lg-<?php print $column_type ?>">
-            <?php print $column['content'] ?>
+          <div class="<?php print $col_classes ?>">
+            <div class="grid">
+              <?php print $column['content'] ?>
+            </div>
           </div>
         <?php endforeach ?>
       </div>
@@ -30,9 +32,11 @@
 
     <div class="row">
       <?php foreach ($items as $column): ?>
-        <div class="col col-lg-<?php print $column_type ?>">
+        <div class="<?php print $col_classes ?>">
           <?php foreach ($column['content'] as $row): ?>
-            <?php print $row['content'] ?>
+            <div class="grid">
+              <?php print $row['content'] ?>
+            </div>
           <?php endforeach ?>
         </div>
       <?php endforeach ?>

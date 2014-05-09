@@ -8,11 +8,31 @@ function template_preprocess_views_bootstrap_thumbnail_plugin_style(&$vars) {
   $options  = $view->style_plugin->options;
   $horizontal = ($options['alignment'] === 'horizontal');
 
-  $columns = $options['columns'];
+  // If columns are set to 0 (Auto), apply the maximum from the number of columns
+  // defined per device size.
+  if (!$options['columns']) {
+    $options['columns'] = 1;
+    foreach (array('xs', 'sm', 'md', 'lg') as $size) {
+      if (isset($vars['view']->style_options["columns_$size"]) && $vars['view']->style_options["columns_$size"] > 0) {
+        $tmpColumns = 12 / $vars['view']->style_options["columns_$size"];
+        if ($tmpColumns > $options['columns']) {
+          $options['columns'] = $tmpColumns;
+        }
+      }
+    }
+  }
 
   // Split items by rows and columns.
-  $vars['items'] = _views_bootstrap_split_rows($vars, $columns, $horizontal);
-  $vars['column_type'] = 12 / $columns;
+  $vars['items'] = _views_bootstrap_split_rows($vars, $options['columns'], $horizontal);
+
+  // Prepare column css classes. Add the class for each device size if set and if
+  // different than 0 ("Do not define" option).
+  $vars['col_classes'] = 'col';
+  foreach (array('xs', 'sm', 'md', 'lg') as $size) {
+    $vars['col_classes'] .= isset($vars['view']->style_options["columns_$size"]) && $vars['view']->style_options["columns_$size"]
+      ? ' col-'.$size.'-'.$vars['view']->style_options["columns_$size"]
+      : '';
+  }
 }
 
 /**
