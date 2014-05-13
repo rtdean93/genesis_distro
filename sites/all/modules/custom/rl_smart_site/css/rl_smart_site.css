@@ -1,0 +1,318 @@
+
+
+#iphone
+{
+	background: url(../images/device-sprite-small-black.png) top no-repeat;
+	background-position: 0 4px;
+	width: 28px;
+	margin-top: 16px;
+	margin-bottom: -10px;
+}
+
+#iphone-l { background: url(../images/device-sprite-small-black.png) no-repeat 0 -44px;
+	width: 32px; }
+
+#ipad
+{
+	background: url(../images/device-sprite-small-black.png) no-repeat 0 -105px;
+	width: 38px;
+}
+
+#ipad-l { 
+background: url(../images/device-sprite-small-black.png) no-repeat 0 -169px; 
+width: 47px;
+}
+
+#desktop
+{
+	background: url(../images/device-sprite-small-black.png) no-repeat 0 -240px;
+	width: 64px;
+}
+
+/* HTML5 display-role reset for older browsers */
+		.node-type-smartsite article, .node-type-smartsite aside, .node-type-smartsite details, .node-type-smartsite figcaption, .node-type-smartsite figure,
+		.node-type-smartsite footer, .node-type-smartsite header, .node-type-smartsite hgroup, .node-type-smartsite menu, .node-type-smartsite nav, .node-type-smartsite section {
+			display: block;
+		}
+        * {
+            margin: 0;
+            padding: 0;
+        }
+ 
+ 
+ 	
+
+       .node-type-smartsite html {
+     		overflow-y: -moz-scrollbars-vertical;
+     		overflow-y: scroll;
+        	}
+
+		.node-type-smartsite a {
+			color:inherit;
+			}
+
+		.node-type-smartsite a:hover {
+			color:black;
+			}
+
+       .node-type-smartsite body {
+            padding: 0px;
+			margin: 0px;
+			background-color:#d9d9d9;
+			font-family: Arial, sans-serif;
+			font-size:0.75em;
+			color:#404042;
+			min-width:1200px
+        }
+
+        
+
+		/* menu   */
+		#screen-options {
+			text-align: center;
+			height: 75px;
+			margin: auto;
+			width: 210px;
+			}
+
+		#screen-options li {
+			text-indent:-9999px;
+			display: block;
+			height: 60px;
+			padding: 5px;
+			float: left;
+
+			opacity: 0.4;
+
+			-webkit-transition: all 0.15s ease-in-out 0s;
+			-moz-transition: all 0.15s ease-in-out 0s;
+			-o-transition: all 0.15s ease-in-out 0s;
+			transition: all 0.15s ease-in-out 0s;
+			}
+
+		#screen-options li:hover {
+			opacity: 1;
+			}
+
+		#screen-options li.active {
+			opacity: 1;
+				}
+
+
+
+
+
+		.node-type-smartsite .url-select {
+			float:left;
+			margin: 11px 0 0 32px;
+		}
+
+		.node-type-smartsite input {
+			display: inline-block;
+			padding: 12px;
+			color: gray;
+			border: 1px solid #CCC;
+			border-radius: 3px;
+			}
+
+		#getURL {
+			width:140px;
+			}
+
+		#button {
+			background-color:#404042;
+			color: #ddd;
+
+			-webkit-transition: all 0.15s ease-in-out 0s;
+			-moz-transition: all 0.15s ease-in-out 0s;
+			-o-transition: all 0.15s ease-in-out 0s;
+			transition: all 0.15s ease-in-out 0s;
+			}
+
+		#button:hover {
+			background-color:black;
+			color:white;
+			}
+
+		#viewport {
+		/* initial width only   */
+			margin: auto ;
+			background-color:#CCCCCC;
+			
+		
+			
+			/* trying different values to fix iOS issues with iFrame busting loose and wrecking the joint.   */
+			overflow:hidden;
+			overflow: scroll;
+			-webkit-overflow-scrolling: touch;
+
+			-webkit-transition: all 0.4s ease-in-out 0s;
+			-moz-transition: all 0.4s ease-in-out 0s;
+			-o-transition: all 0.4s ease-in-out 0s;
+			transition: all 0.4s ease-in-out 0s;
+			
+			}
+
+		.node-type-smartsite iframe {
+			background-color: white;
+			position:relative;
+			margin:auto;
+			border:none;
+			
+			}
+
+
+		/* ////// DEVICES */
+
+		/* /// Details   */
+		#device-detail {
+			position: relative;
+			z-index: 1000;
+			text-indent:-9999px;
+			display: block;
+			margin: auto;
+
+			-webkit-transition: all 0.15s ease-in-out 0s;
+			-moz-transition: all 0.15s ease-in-out 0s;
+			-o-transition: all 0.15s ease-in-out 0s;
+			transition: all 0.15s ease-in-out 0s;
+			}
+
+		.iphone-detail {
+			top: -53px;
+			width: 40px;
+			height: 40px;
+			border-radius: 20px;
+			background-color:#CCCCCC;
+			}
+
+		.iphone-l-detail {
+			top: -210px;
+			left: -270px;
+			width: 40px;
+			height: 40px;
+			border-radius: 20px;
+			background-color:#CCCCCC;
+			}
+
+		.ipad-detail {
+			top: -70px;
+			width: 50px;
+			height: 50px;
+			border-radius: 25px;
+			background-color:#CCCCCC;
+			}
+
+		.ipad-l-detail {
+			top: -410px;
+			left: -468px;
+			width: 50px;
+			height: 50px;
+			border-radius: 25px;
+			background-color:#CCCCCC;
+			}
+
+		.desktop-detail {
+			border-radius: 25px;
+			background:none;
+			border-bottom: 100px solid #404042;
+			border-left: 50px solid transparent;
+			border-right: 50px solid transparent;
+			height: 0;
+			width: 100px;
+			top: 20px;
+			}
+
+		/* /// Devices sizes   */
+
+		/* iphone 320 x 480 */
+		#viewport.iphone {
+			border-top: 65px solid;
+			border-right: 35px solid;
+			border-bottom: 65px solid;
+			border-left: 35px solid;
+			border-radius: 20px;
+			width:390px;
+			height:605px;
+			}
+		.iphone, .iphone iframe {
+			width:320px;
+			height:480px;
+			}
+			
+			#viewport.iphone-l {
+			width:605px;
+			height:390px;
+			}
+			
+			
+	
+		.iphone-l {
+			border-top: 35px solid;
+			border-right: 65px solid;
+			border-bottom: 35px solid;
+			border-left: 65px solid;
+			border-radius: 20px;
+			}
+		.iphone-l, .iphone-l iframe {
+			width:100%;
+			height:320px;
+			}
+
+
+		/* ipad 1024 x 768 */
+		
+		#viewport.ipad {
+			width:768px;
+			height:1024px;
+			}
+			
+		.ipad {
+			border: 90px solid;
+			border-radius: 20px;
+			}
+		.ipad, .ipad iframe {
+			width:100%;
+			height:1024px;
+			}
+			
+		#viewport.ipad-l {
+			width:1024px;
+			height:768px;
+			}
+
+		.ipad-l {
+			border: 90px solid;
+			border-radius: 20px;
+			}
+		.ipad-l, .ipad-l iframe {
+			width:100%;
+			height:768px;
+			}
+
+
+		/* desktop 1200 x 800 */
+		.desktop {
+			border: 20px solid;
+			border-radius: 10px;
+			}
+		.desktop, .desktop iframe {
+			width:100%;
+			height:800px;
+			}
+			
+		#viewport.desktop {
+			width:100%;
+			height:840px;
+			}
+
+
+/* 
+#viewport *,
+#viewport *:before,
+#viewport *:after {
+    -webkit-box-sizing: content-box !important;
+    -moz-box-sizing: content-box !important;
+    box-sizing: content-box !important;
+}
+ */

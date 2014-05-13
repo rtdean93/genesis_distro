@@ -1,0 +1,56 @@
+<?php
+/**
+ * @file
+ * Code for the RL Smart Site feature.
+ */
+
+include_once 'rl_smart_site.features.inc';
+
+// drupal_add_js(drupal_get_path('module', 'rl_smart_site') .'js/rl_smart_site.js');
+
+// Create a variable to store the path to this module
+define('MY_MODULE_PATH', drupal_get_path('module', 'my_module'));
+function rl_smart_site_theme_registry_alter(&$theme_registry) {
+  $theme_registry_copy = $theme_registry;
+  _theme_process_registry($theme_registry_copy, 'phptemplate', 'theme_engine', 'my_custom_theme', MY_MODULE_PATH);
+  $theme_registry += array_diff_key($theme_registry_copy, $theme_registry);
+  // A list of templates the module will provide templates for
+  $hooks = array('page');
+  foreach ($hooks as $h) {
+    // Add the key 'theme paths' if it doesn't exist in this theme's registry
+    if (!isset($theme_registry[$h]['theme paths'])) {
+      $theme_registry[$h]['theme paths'] = array();
+    }
+    //Shift this module's directory to the top of the theme path list
+    if(is_array($theme_registry[$h]['theme paths'])) {
+      $first_element = array_shift($theme_registry[$h]['theme paths']);
+      if ($first_element) {
+        array_unshift($theme_registry[$h]['theme paths'], $first_element, MY_MODULE_PATH);
+      } else {
+        array_unshift($theme_registry[$h]['theme paths'], MY_MODULE_PATH);
+      }
+    }
+  }
+}
+
+function rl_smart_site_block_info() {
+  $blocks['smart_site_selector'] = array(
+    // info: The name of the block.
+    'info' => t('Smart Site Selector'),
+  );
+
+  return $blocks;
+}
+
+function rl_smart_site_block_view($delta = '') {
+  // The $delta parameter tells us which block is being requested.
+  switch ($delta) {
+    case 'smart_site_selector':
+      // Create your block content here
+      $block['subject'] = t('Title of first block (example_configurable_text)');
+      break;
+  }
+
+  return $block;
+}
+
