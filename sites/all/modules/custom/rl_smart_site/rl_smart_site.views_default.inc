@@ -12,10 +12,10 @@ function rl_smart_site_views_default_views() {
 
   $view = new view();
   $view->name = 'smart_site_gallery_2_0';
-  $view->description = '';
+  $view->description = 'Provides a view of Smart Sites';
   $view->tag = 'default';
   $view->base_table = 'node';
-  $view->human_name = 'Smart Site Gallery 2.0';
+  $view->human_name = 'Smart Site Gallery';
   $view->core = 7;
   $view->api_version = '3.0';
   $view->disabled = FALSE; /* Edit this to true to make a default view disabled initially */
@@ -28,33 +28,28 @@ function rl_smart_site_views_default_views() {
   $handler->display->display_options['access']['type'] = 'perm';
   $handler->display->display_options['cache']['type'] = 'none';
   $handler->display->display_options['query']['type'] = 'views_query';
-  $handler->display->display_options['exposed_form']['type'] = 'better_exposed_filters';
+  $handler->display->display_options['exposed_form']['type'] = 'basic';
   $handler->display->display_options['exposed_form']['options']['expose_sort_order'] = FALSE;
   $handler->display->display_options['exposed_form']['options']['autosubmit'] = TRUE;
-  $handler->display->display_options['exposed_form']['options']['bef'] = array(
-    'general' => array(
-      'allow_secondary' => 0,
-      'secondary_label' => 'Advanced options',
-    ),
-    'field_smartsite_category_tid' => array(
-      'bef_format' => 'default',
-      'more_options' => array(
-        'bef_select_all_none' => FALSE,
-        'bef_collapsible' => 0,
-        'is_secondary' => 0,
-        'bef_filter_description' => '',
-        'tokens' => array(
-          'available' => array(
-            0 => 'global_types',
-          ),
-        ),
-      ),
-    ),
-  );
   $handler->display->display_options['pager']['type'] = 'none';
   $handler->display->display_options['pager']['options']['offset'] = '0';
-  $handler->display->display_options['style_plugin'] = 'default';
-  $handler->display->display_options['row_plugin'] = 'fields';
+  $handler->display->display_options['style_plugin'] = 'views_bootstrap_thumbnail_plugin_style';
+  $handler->display->display_options['style_options']['columns'] = '0';
+  $handler->display->display_options['style_options']['columns_xs'] = '12';
+  $handler->display->display_options['style_options']['columns_sm'] = '6';
+  $handler->display->display_options['style_options']['columns_md'] = '4';
+  $handler->display->display_options['style_options']['columns_lg'] = '3';
+  $handler->display->display_options['row_plugin'] = 'views_bootstrap_thumbnail_plugin_rows';
+  $handler->display->display_options['row_options']['image'] = 'field_smartsite_thumbnail';
+  $handler->display->display_options['row_options']['title'] = 'title';
+  $handler->display->display_options['row_options']['content'] = array(
+    'title' => 'title',
+    'view_node' => 'view_node',
+    'path' => 0,
+    'field_smartsite_thumbnail' => 0,
+    'tid' => 0,
+    'name' => 0,
+  );
   /* Header: Global: Text area */
   $handler->display->display_options['header']['area']['id'] = 'area';
   $handler->display->display_options['header']['area']['table'] = 'views';
@@ -99,7 +94,7 @@ function rl_smart_site_views_default_views() {
   $handler->display->display_options['fields']['field_smartsite_thumbnail']['element_label_colon'] = FALSE;
   $handler->display->display_options['fields']['field_smartsite_thumbnail']['click_sort_column'] = 'fid';
   $handler->display->display_options['fields']['field_smartsite_thumbnail']['settings'] = array(
-    'image_style' => 'medium',
+    'image_style' => '',
     'image_link' => '',
   );
   /* Field: Taxonomy term: Term ID */
@@ -159,38 +154,35 @@ function rl_smart_site_views_default_views() {
   $handler->display->display_options['filters']['type']['value'] = array(
     'smartsite' => 'smartsite',
   );
-  /* Filter criterion: category */
+  /* Filter criterion: Content: Category (field_smartsite_category) */
   $handler->display->display_options['filters']['field_smartsite_category_tid']['id'] = 'field_smartsite_category_tid';
   $handler->display->display_options['filters']['field_smartsite_category_tid']['table'] = 'field_data_field_smartsite_category';
   $handler->display->display_options['filters']['field_smartsite_category_tid']['field'] = 'field_smartsite_category_tid';
-  $handler->display->display_options['filters']['field_smartsite_category_tid']['ui_name'] = 'category';
-  $handler->display->display_options['filters']['field_smartsite_category_tid']['value'] = array(
-    284 => '284',
-    268 => '268',
-    285 => '285',
-    282 => '282',
-    281 => '281',
-    283 => '283',
-  );
   $handler->display->display_options['filters']['field_smartsite_category_tid']['exposed'] = TRUE;
   $handler->display->display_options['filters']['field_smartsite_category_tid']['expose']['operator_id'] = 'field_smartsite_category_tid_op';
+  $handler->display->display_options['filters']['field_smartsite_category_tid']['expose']['label'] = 'Category';
   $handler->display->display_options['filters']['field_smartsite_category_tid']['expose']['operator'] = 'field_smartsite_category_tid_op';
-  $handler->display->display_options['filters']['field_smartsite_category_tid']['expose']['identifier'] = 'category';
+  $handler->display->display_options['filters']['field_smartsite_category_tid']['expose']['identifier'] = 'field_smartsite_category_tid';
   $handler->display->display_options['filters']['field_smartsite_category_tid']['expose']['remember_roles'] = array(
     2 => '2',
     1 => 0,
-    3 => 0,
-    4 => 0,
+    30037204 => 0,
+    103270763 => 0,
+    175031666 => 0,
+    197817655 => 0,
   );
-  $handler->display->display_options['filters']['field_smartsite_category_tid']['expose']['reduce'] = TRUE;
-  $handler->display->display_options['filters']['field_smartsite_category_tid']['reduce_duplicates'] = TRUE;
   $handler->display->display_options['filters']['field_smartsite_category_tid']['type'] = 'select';
   $handler->display->display_options['filters']['field_smartsite_category_tid']['vocabulary'] = 'smart_site_category';
-  $handler->display->display_options['filters']['field_smartsite_category_tid']['error_message'] = FALSE;
 
   /* Display: Page */
   $handler = $view->new_display('page', 'Page', 'page_1');
   $handler->display->display_options['path'] = 'smart-website/gallery';
+  $handler->display->display_options['menu']['type'] = 'normal';
+  $handler->display->display_options['menu']['title'] = 'Gallery';
+  $handler->display->display_options['menu']['weight'] = '0';
+  $handler->display->display_options['menu']['name'] = 'main-menu';
+  $handler->display->display_options['menu']['context'] = 0;
+  $handler->display->display_options['menu']['context_only_inline'] = 0;
 
   /* Display: Block */
   $handler = $view->new_display('block', 'Block', 'related_sites');
