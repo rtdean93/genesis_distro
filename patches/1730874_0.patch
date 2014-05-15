@@ -1,0 +1,14 @@
+diff --git a/includes/entity.inc b/includes/entity.inc
+index ae78077..0ac50e9 100644
+--- a/includes/entity.inc
++++ b/includes/entity.inc
+@@ -255,7 +255,8 @@ class DrupalDefaultEntityController implements DrupalEntityControllerInterface {
+     $query->addTag($this->entityType . '_load_multiple');
+ 
+     if ($revision_id) {
+-      $query->join($this->revisionTable, 'revision', "revision.{$this->idKey} = base.{$this->idKey} AND revision.{$this->revisionKey} = :revisionId", array(':revisionId' => $revision_id));
++      $query->join($this->revisionTable, 'revision', "revision.{$this->idKey} = base.{$this->idKey}");
++      $query->condition("revision.{$this->revisionKey}", $revision_id);
+     }
+     elseif ($this->revisionKey) {
+       $query->join($this->revisionTable, 'revision', "revision.{$this->revisionKey} = base.{$this->revisionKey}");

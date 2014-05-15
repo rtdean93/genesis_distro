@@ -250,7 +250,8 @@ class DrupalDefaultEntityController implements DrupalEntityControllerInterface {
     $query->addTag($this->entityType . '_load_multiple');
 
     if ($revision_id) {
-      $query->join($this->revisionTable, 'revision', "revision.{$this->idKey} = base.{$this->idKey} AND revision.{$this->revisionKey} = :revisionId", array(':revisionId' => $revision_id));
+      $query->join($this->revisionTable, 'revision', "revision.{$this->idKey} = base.{$this->idKey}");
+      $query->condition("revision.{$this->revisionKey}", $revision_id);
     }
     elseif ($this->revisionKey) {
       $query->join($this->revisionTable, 'revision', "revision.{$this->revisionKey} = base.{$this->revisionKey}");
