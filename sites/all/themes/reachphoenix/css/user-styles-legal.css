@@ -15,8 +15,8 @@ ol p {
 
 ol.numeric-decimals { counter-reset:section; list-style-type:none; }
 ol.numeric-decimals li { list-style-type:none; }
-ol.numeric-decimals li ol { counter-reset:subsection; }
-ol.numeric-decimals li ol li ol { counter-reset:tertiarysection; }
+ol.numeric-decimals li ol:not([type="a"]) { counter-reset:subsection; }
+ol.numeric-decimals li ol:not([type="a"]) li ol:not([type="a"]) { counter-reset:tertiarysection; }
 
 ol.numeric-decimals li:before{
     counter-increment:section;
@@ -33,3 +33,6 @@ ol.numeric-decimals li ol li ol li:before {
     counter-increment:tertiarysection;
     content:counter(section) "." counter(subsection) "." counter(tertiarysection) " ";
 }
+
+ol[type="a"] {counter-reset: s !important; list-style-type: none !important;}
+ol[type="a"] li:before {counter-increment: s !important; content: counter(s, lower-alpha) ". " !important; }
