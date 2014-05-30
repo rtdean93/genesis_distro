@@ -11,6 +11,11 @@ function sitenotes_install() {
   node_types_rebuild();
   $types = node_type_get_types();
   node_add_body_field($types['sitenotes']);
+
+  // Set up search.
+  $search_modules = variable_get('search_active_modules', array('node', 'user'));
+  $search_modules[] = 'sitenotes';
+  variable_set('search_active_modules', array_unique($search_modules));
 }
 
 /**
@@ -21,7 +26,7 @@ function sitenotes_uninstall() {
     ->fields('n', array('nid'))
     ->condition('type', array('sitenotes'), 'IN')
     ->execute()
-    -fetchCol();
+    ->fetchCol();
 
   if (!empty($nids)) {
     node_delete_multiple($nids);
