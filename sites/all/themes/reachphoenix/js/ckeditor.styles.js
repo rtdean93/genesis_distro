@@ -33,13 +33,18 @@ if(typeof(CKEDITOR) !== 'undefined') {
             /* List Styles */
 
             {
-                name: 'Numeric Decimals'  ,
+                name: 'Ordered List (w/ subsections)'  ,
                 element : 'ol',
                 attributes: {
                    'class' : 'numeric-decimals'
                 }
+            },
+            {
+                name: 'Alpha (lower)',
+                element: 'ol',
+                attributes: {
+                    type: 'a'
+                }
             }
-
-
         ]);
 }
