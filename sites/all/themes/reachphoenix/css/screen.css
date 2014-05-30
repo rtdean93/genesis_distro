@@ -21,6 +21,7 @@ ol.numeric-decimals li ol li ol { counter-reset:tertiarysection; }
 ol.numeric-decimals li:before{
     counter-increment:section;
     content:counter(section) ". ";
+    font-weight: bold;
 }
 
 ol.numeric-decimals li ol li:before {
@@ -31,5 +32,4 @@ ol.numeric-decimals li ol li:before {
 ol.numeric-decimals li ol li ol li:before {
     counter-increment:tertiarysection;
     content:counter(section) "." counter(subsection) "." counter(tertiarysection) " ";
-    font-weight: bold;
 }
