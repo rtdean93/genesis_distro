@@ -18,7 +18,6 @@ function sitenotes_node_info() {
       'description' => t('Create site notes for admin user(s).'),
       'has_title' => TRUE,
       'has_body' => TRUE,
-      'min_word_count' => 5,
       'custom' => TRUE,
       'modified' => TRUE,
       'locked' => FALSE,
@@ -66,13 +65,6 @@ function sitenotes_permission() {
 function sitenotes_menu() {
   $items = array();
 
-  $items['admin/config/content/sitenotes'] = array(
-    'title' => 'Site notes settings',
-    'description' => 'Control the Site Notes module.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('sitenotes_settings_form'),
-    'access arguments' => array('Access site notes'),
-    );
   $items['admin/content/sitenotes'] = array(
     'title' => 'Site notes display',
     'description' => 'Show all site notes',
@@ -88,7 +80,7 @@ function sitenotes_menu() {
  */
 function sitenotes_menu_alter(&$callbacks) {
   $callbacks['node/add/sitenotes']['access callback'] = "user_access";
-  $callbacks['node/add/sitenotes']['access arguments'] = array("access site notes");
+  $callbacks['node/add/sitenotes']['access arguments'] = array("Access site notes");
 }
 
 /**
@@ -137,17 +129,13 @@ function sitenotes_query_alter(QueryAlterableInterface $query) {
 
 /**
  * Implements hook_form_BASE_FORM_ID_alter() for node_form().
- *  Disables the 'promote to front' option.
- *  Redirects the user to the view function.
- *  Remove sitenotes content from the advanced search options to prevent it being found.
- *    - Copied from:  http://drupal.org/node/84955#comment-162473
+ * Disables the 'promote to front' option.
+ * Remove sitenotes content from the advanced search options to prevent it being found.
  */
 function sitenotes_form_node_form_alter(&$form, &$form_state, $form_id) {
   switch ($form_id) {
     case 'sitenotes_node_form':
       $form['options']['promote']['#value'] = 0;
-      // Make it use my redirect.
-      $form['buttons']['submit']['#submit'][] = 'sitenotes_delete';
       break;
 
     // Check for "advanced search form".
@@ -168,35 +156,50 @@ function sitenotes_form($node, $form_state) {
   return node_content_form($node, $form_state);
 }
 
-function sitenotes_delete(&$node) {
-  // Form redirect doesn't work in D6, so fake it.
-  $_REQUEST['destination'] = 'admin/build/sitenotes';
+/**
+ * Implements hook_search_info().
+ * Tell the search module that we're here.
+ */
+function sitenotes_search_info() {
+  return array(
+    'title' => 'Sitenotes',
+//    'path' => 'sitenotes',
+    );
 }
 
 /**
- * Implements hook_form().
- *  Allows the admin to set whether or not to be able to search the sitenotes content.
+ * Implements hook_search_admin().
+ * Allows the admin to set whether or not to be able to search the sitenotes content.
  */
-function sitenotes_settings_form() {
-  $form['sitenotes_search'] = array(
+function sitenotes_search_admin() {
+  $form = array();
+
+  $form['sitenotes'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Sitenotes'),
+      '#weight' => -1,
+      );
+
+  $form['sitenotes']['sitenotes_search'] = array(
       '#type' => 'checkbox',
       '#title' => t('Allow search for authorized users?'),
-      '#description' => t("Indexes Site Notes for searching. Only users with 'access site notes' permission will be able to see the results."),
+      '#description' => t("Indexes Site Notes for searching. Only users with
+        'access site notes' permission will be able to see the results."),
       '#default_value' => variable_get('sitenotes_search', FALSE),
-    );
+      );
 
-  return system_settings_form($form);
+  return $form;
 }
 
 /**
- * Implements hook_list().
- *  Called from the Administer >> Site building menu to retrieve the sitenotes teasers.
- *  Note the use of styling classes for individual customization.
+ * Menu callback.
+ * Called from the Administer >> Content menu to retrieve the sitenotes teasers.
+ * Note the use of styling classes for individual customization.
  */
 function sitenotes_list() {
   $how_many = variable_get('default_nodes_main', 10);
   $build = array();
-  
+
   $query = db_select('node', 'n')->extend('PagerDefault')->limit($how_many);
   $query->fields('n', array('nid'));
   $query->condition('n.type', 'sitenotes')
@@ -277,18 +280,24 @@ function sitenotes_node_presave($node) {
  * Implements hook_update_index.
  *  Remove sitenotes content from the search index to prevent it being found,
  *  if we are not allowing searching.
- *  Copied from:  http://drupal.org/node/84955#comment-162473
  */
 function sitenotes_update_index() {
   if (function_exists('search_reindex') && !variable_get('sitenotes_search', FALSE)) {
+    $last = variable_set('sitenotes_last_cron', 0);
     $query = db_select('node', 'n');
     $query->fields('n', array('nid'));
     $query->condition('n.type', 'sitenotes');
+    $query->condition('n.created', $last, '>=');
 
     $result = $query->execute();
     foreach ($result as $row) {
-       search_reindex($row->nid, 'node');
+      // Clear out existing data for this node.
+      search_reindex($row->nid, 'node');
+
+      // Now give it nothing to index.
+      search_index($row->nid, 'node', '');
     }
+    variable_set('sitenotes_last_cron', REQUEST_TIME);
   }
 }
 

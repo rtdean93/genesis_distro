@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Legal materials feature.
+ */
+
+include_once 'legal_materials.features.inc';
