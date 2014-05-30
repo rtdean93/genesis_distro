@@ -5,6 +5,8 @@ sites/*/local.settings.php
 sites/*/files
 sites/*/private
 
+robots.txt
+
 # IDE specific files to ignore.
 # PHPStorm project directory.
 .idea
