@@ -28,12 +28,14 @@ settings[toggle_secondary_menu] = 1
 settings[responsive_toggle] = 1
 settings[pane_styles_toggle] = 1
 settings[always_show_page_title] = 0
+settings[build_subtheme] = 0
+settings[fontawesome] = 1
 
 plugins[panels][styles] = styles
 
-; Information added by Drupal.org packaging script on 2014-02-11
-version = "7.x-3.0-rc2"
+; Information added by Drupal.org packaging script on 2014-05-10
+version = "7.x-3.0-rc3"
 core = "7.x"
 project = "kalatheme"
-datestamp = "1392104605"
+datestamp = "1399740528"
 
