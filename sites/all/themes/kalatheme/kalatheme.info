@@ -39,3 +39,10 @@ core = "7.x"
 project = "kalatheme"
 datestamp = "1399740528"
 
+
+; Information added by Drupal.org packaging script on 2014-05-12
+version = "7.x-3.0-rc3+74-dev"
+core = "7.x"
+project = "kalatheme"
+datestamp = "1399913628"
+
