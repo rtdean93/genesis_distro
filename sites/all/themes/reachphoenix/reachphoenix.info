@@ -11,5 +11,3 @@ stylesheets[all][] = css/main.css
 
 stylesheets[all][] = css/font-awesome.min.css
 
-stylesheets[all][] = 'css/user-styles-legal.css'
-

@@ -1,4 +1,10 @@
 /*
+ * This is the CSS file to handle specialized items for the legal section of
+ * the new ReachLocal.com. The styles should contain only layout and positioning
+ * information so that theme fonts, colors, etc. will be consistent.
+ */
+
+/*
  * Nested ordered lists with subsections
  * @see http://stackoverflow.com/questions/3635955/how-to-create-a-1-1-1-2-1-3-html-list
  */
