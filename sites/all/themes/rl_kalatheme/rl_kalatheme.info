@@ -7,6 +7,8 @@ core = 7.x
 regions[content] = Content
 
 stylesheets[all][] = css/main.css
+stylesheets[all][] = 'css/user-styles-legal.css'
+
 
 features[] = logo
 features[] = name
