@@ -21,7 +21,7 @@ function legal_materials_node_info() {
     'legal_page' => array(
       'name' => t('Legal page'),
       'base' => 'node_content',
-      'description' => t('Content type for all legal pages <strong><i>except</i></strong> <i>terms and conditions pages</i>.'),
+      'description' => '',
       'has_title' => '1',
       'title_label' => t('Title'),
       'help' => '',

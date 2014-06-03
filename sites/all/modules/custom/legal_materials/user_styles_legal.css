@@ -1,0 +1,82 @@
+/*
+ * This is the CSS file to handle specialized items for the legal section of
+ * the new ReachLocal.com. The styles should contain only layout and positioning
+ * information so that theme fonts, colors, etc. will be consistent.
+ */
+
+/*
+ * Nested ordered lists with subsections
+ * @see http://stackoverflow.com/questions/3635955/how-to-create-a-1-1-1-2-1-3-html-list
+ */
+ol ol, ul {
+    margin-left: 1.2em;
+}
+
+ol p {
+    margin-left: 1.2em;
+    margin-top: 0.7em;
+    margin-bottom: 0.7em;
+    margin-right: 1.2em;
+}
+
+ol li, ul li {
+  margin: 0.5em auto;
+}
+
+
+ol.numeric-decimals { counter-reset:section; list-style-type:none; }
+ol.numeric-decimals li { list-style-type:none; }
+ol.numeric-decimals li ol:not([type="a"]) { counter-reset:subsection; }
+ol.numeric-decimals li ol:not([type="a"]) li ol:not([type="a"]) { counter-reset:tertiarysection; }
+
+ol.numeric-decimals li:before{
+    counter-increment:section;
+    content:counter(section) ". ";
+    font-weight: bold;
+}
+
+ol.numeric-decimals li ol li:before {
+    counter-increment:subsection;
+    content:counter(section) "." counter(subsection) " ";
+}
+
+ol.numeric-decimals li ol li ol li:before {
+    counter-increment:tertiarysection;
+    content:counter(section) "." counter(subsection) "." counter(tertiarysection) " ";
+}
+
+ol.numeric-decimals ol[type="a"] {counter-reset: s; list-style-type: none;}
+ol.numeric-decimals ol[type="a"] li:before {counter-increment: s; content: counter(s, lower-alpha) ". "; }
+ol.numeric-decimals ol[type="i"] li:before {content: ""; }
+
+/* Table styles used in legal documents. */
+table.pricing-table, table.os-requirements {
+    margin: 0.5em 0 1em 0;
+}
+
+table.pricing-table {
+    width: 100%;
+    max-width: 700px;
+}
+
+table.pricing-table tr td {
+    border-bottom: 1px solid;
+}
+
+table.os-requirements {
+  width: 100%;
+}
+
+table.os-requirements tr th, table.os-requirements tr td {
+    padding: 0 3px;
+}
+
+table.os-requirements tr td {
+  vertical-align: top;
+  border-bottom: 1px solid;
+
+}
+
+table.os-requirements tr td p {
+  margin-top: 0.3em;
+}
