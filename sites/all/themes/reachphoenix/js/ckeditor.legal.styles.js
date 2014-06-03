@@ -33,17 +33,40 @@ if(typeof(CKEDITOR) !== 'undefined') {
             /* List Styles */
 
             {
-                name: 'Ordered List (w/ subsections)'  ,
+                name: 'List - Decimal (w/ subsections)'  ,
                 element : 'ol',
                 attributes: {
                    'class' : 'numeric-decimals'
                 }
             },
             {
-                name: 'Alpha (lower)',
+                name: 'List - Alpha (lower)',
                 element: 'ol',
                 attributes: {
                     type: 'a'
+                }
+            },
+            {
+                name: 'List - Square',
+                element: 'ul',
+                attributes: {
+                    type: 'square'
+                }
+            },
+
+            /* Table Styles */
+            {
+                name: 'Pricing Table',
+                element: 'table',
+                attributes: {
+                    'class' : 'pricing-table'
+                }
+            },
+            {
+                name: 'OS Requirements Table',
+                element: 'table',
+                attributes: {
+                    'class' : 'os-requirements'
                 }
             }
         ]);
