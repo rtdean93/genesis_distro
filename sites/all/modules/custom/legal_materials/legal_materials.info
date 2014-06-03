@@ -26,3 +26,4 @@ features[variable][] = node_options_legal_page
 features[variable][] = node_preview_legal_page
 features[variable][] = node_submitted_legal_page
 features_exclude[dependencies][ctools] = ctools
+stylesheets[all][] = css/user-styles-legal.css
