@@ -21,6 +21,8 @@ robots.txt
 cache/*
 cache
 cache/*/normal
+.sass-cache
+
 
 # Data Files
 sites/*/data
