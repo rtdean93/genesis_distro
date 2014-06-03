@@ -2,37 +2,62 @@
  * Nested ordered lists with subsections
  * @see http://stackoverflow.com/questions/3635955/how-to-create-a-1-1-1-2-1-3-html-list
  */
+/* line 6, ../scss/user-styles-legal.scss */
+.test {
+  display: none;
+}
+
+/* line 11, ../scss/user-styles-legal.scss */
 ol ol {
-    margin-left: 1.2em;
+  margin-left: 1.2em;
 }
-
+/* line 14, ../scss/user-styles-legal.scss */
 ol p {
-    margin-left: 1.2em;
-    margin-top: 0.7em;
-    margin-bottom: 0.7em;
-    margin-right: 1.2em;
+  margin-left: 1.2em;
+  margin-top: 0.7em;
+  margin-bottom: 0.7em;
+  margin-right: 1.2em;
 }
-
-ol.numeric-decimals { counter-reset:section; list-style-type:none; }
-ol.numeric-decimals li { list-style-type:none; }
-ol.numeric-decimals li ol:not([type="a"]) { counter-reset:subsection; }
-ol.numeric-decimals li ol:not([type="a"]) li ol:not([type="a"]) { counter-reset:tertiarysection; }
-
-ol.numeric-decimals li:before{
-    counter-increment:section;
-    content:counter(section) ". ";
-    font-weight: bold;
+/* line 20, ../scss/user-styles-legal.scss */
+ol.numeric-decimals {
+  counter-reset: section;
+  list-style-type: none;
 }
-
+/* line 23, ../scss/user-styles-legal.scss */
+ol.numeric-decimals li {
+  list-style-type: none;
+}
+/* line 25, ../scss/user-styles-legal.scss */
+ol.numeric-decimals li ol:not([type="a"]) {
+  counter-reset: subsection;
+}
+/* line 27, ../scss/user-styles-legal.scss */
+ol.numeric-decimals li ol:not([type="a"]) li ol:not([type="a"]) {
+  counter-reset: tertiarysection;
+}
+/* line 31, ../scss/user-styles-legal.scss */
+ol.numeric-decimals li:before {
+  counter-increment: section;
+  content: counter(section) ". ";
+  font-weight: bold;
+}
+/* line 37, ../scss/user-styles-legal.scss */
 ol.numeric-decimals li ol li:before {
-    counter-increment:subsection;
-    content:counter(section) "." counter(subsection) " ";
+  counter-increment: subsection;
+  content: counter(section) "." counter(subsection) " ";
 }
-
+/* line 41, ../scss/user-styles-legal.scss */
 ol.numeric-decimals li ol li ol li:before {
-    counter-increment:tertiarysection;
-    content:counter(section) "." counter(subsection) "." counter(tertiarysection) " ";
+  counter-increment: tertiarysection;
+  content: counter(section) "." counter(subsection) "." counter(tertiarysection) " ";
 }
-
-ol[type="a"] {counter-reset: s !important; list-style-type: none !important;}
-ol[type="a"] li:before {counter-increment: s !important; content: counter(s, lower-alpha) ". " !important; }
+/* line 48, ../scss/user-styles-legal.scss */
+ol[type="a"] {
+  counter-reset: s !important;
+  list-style-type: none !important;
+}
+/* line 51, ../scss/user-styles-legal.scss */
+ol[type="a"] li:before {
+  counter-increment: s !important;
+  content: counter(s,lower-alpha) ". " !important;
+}

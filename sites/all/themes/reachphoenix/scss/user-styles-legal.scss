@@ -1,0 +1,52 @@
+/*
+ * Nested ordered lists with subsections
+ * @see http://stackoverflow.com/questions/3635955/how-to-create-a-1-1-1-2-1-3-html-list
+ */
+
+ol {
+  ol {
+    margin-left: 1.2em;
+  }
+  p {
+    margin-left: 1.2em;
+    margin-top: 0.7em;
+    margin-bottom: 0.7em;
+    margin-right: 1.2em;
+  }
+  &.numeric-decimals {
+    counter-reset: section;
+    list-style-type: none;
+    li {
+      list-style-type: none;
+      ol:not([type="a"]) {
+        counter-reset: subsection;
+        li ol:not([type="a"]) {
+          counter-reset: tertiarysection;
+        }
+      }
+      &:before {
+        counter-increment: section;
+        content: counter(section) ". ";
+        font-weight: bold;
+      }
+      ol li {
+        &:before {
+          counter-increment: subsection;
+          content: counter(section) "." counter(subsection) " ";
+        }
+        ol li:before {
+          counter-increment: tertiarysection;
+          content: counter(section) "." counter(subsection) "." counter(tertiarysection) " ";
+        }
+      }
+    }
+  }
+  &[type="a"] {
+    counter-reset: s !important;
+    list-style-type: none !important;
+    li:before {
+      counter-increment: s !important;
+      content: counter(s, lower-alpha) ". " !important;
+    }
+  }
+}
