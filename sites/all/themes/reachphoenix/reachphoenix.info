@@ -11,3 +11,8 @@ stylesheets[all][] = css/main.css
 
 stylesheets[all][] = css/font-awesome.min.css
 
+breakpoints[mobile] = (min-width: 0px)
+breakpoints[narrow] = (min-width: 740px)
+breakpoints[normal] = (min-width: 980px)
+breakpoints[wide] = (min-width: 1220px)
+

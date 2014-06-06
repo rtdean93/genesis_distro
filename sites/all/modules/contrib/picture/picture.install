@@ -1,0 +1,109 @@
+<?php
+/**
+ * @file
+ * Install/schema hooks for the picture module.
+ */
+/**
+ * Implements hook_schema().
+ */
+function picture_schema() {
+  $schema = array();
+  $schema['picture_mapping'] = array(
+    'description' => 'Responsible images and styles mappings to breakpoints',
+    'fields' => array(
+      'id' => array(
+        'type' => 'serial',
+        'not null' => TRUE,
+        'description' => 'The internal identifier for this mapping',
+        'no export' => TRUE, // do not export database only keys.
+      ),
+      'machine_name' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The machine name of the mapping',
+      ),
+      'breakpoint_group' => array(
+        'type' => 'varchar',
+        'length' => 255,
+        'not null' => TRUE,
+        'description' => 'The group this mapping belongs to',
+      ),
+      'mapping' => array(
+        'type' => 'blob',
+        'not null' => TRUE,
+        'description' => 'The mappings linked to the breakpoints group',
+        'serialize' => TRUE,
+      ),
+    ),
+    'primary key' => array('id'),
+    // CTools exportable object definition
+    'export' => array(
+      'key' => 'machine_name',
+      'key name' => 'machine_name',
+      'primary key' => 'id',
+      'identifier' => 'picture_mapping',
+      'admin_title' => 'label',
+      'default hook' => 'default_picture_mapping',
+      'api' => array(
+        'owner' => 'picture',
+        'api' => 'default_picture_mapping',
+        'minimum_version' => 1,
+        'current_version' => 1,
+      ),
+    ),
+  );
+
+  return $schema;
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function picture_uninstall() {
+  variable_del('picture_ckeditor_groups');
+  variable_del('picture_ckeditor_label');
+}
+
+/**
+ * Update to the new file display formatter provided by file_entity.module.
+ */
+function picture_update_7001() {
+  if (!module_exists('file_entity')) {
+    return;
+  }
+  $entity_info = entity_get_info('file');
+  $types = file_type_load_all();
+  foreach ($types as $file_type) {
+    //file_picture
+    // Retrieve available formatters for this file type and load all configured
+    // filters for existing text formats.
+    $formatters = file_info_formatter_types();
+    foreach ($formatters as $name => $formatter) {
+      if (isset($formatter['mime types'])) {
+        if (file_entity_match_mimetypes($formatter['mime types'], $file_type->mimetypes)) {
+          continue;
+        }
+        unset($formatters[$name]);
+      }
+    }
+    $view_modes = array('default' => array('label' => t('Default'))) + $entity_info['view modes'];
+    foreach (array_keys($view_modes) as $view_mode) {
+      $current_displays = file_displays_load($file_type->type, $view_mode, TRUE);
+      if (isset($current_displays['file_picture']) && $current_displays['file_picture']->status) {
+        if (!isset($current_displays['file_field_picture']) || !$current_displays['file_field_picture']->status) {
+          $display = clone $current_displays['file_picture'];
+          $display->name = isset($current_displays['file_field_picture']) ? $current_displays['file_field_picture']->name : $file_type->type . '__' . $view_mode . '__file_field_picture';
+          unset($display->settings['alt']);
+          unset($display->settings['title']);
+          $display->settings['image_link'] = '';
+          $display->settings['colorbox'] = $display->settings['picture_group'];
+          $current_displays['file_field_picture'] = $display;
+          unset($current_displays['file_picture']);
+          file_display_save($display);
+        }
+      }
+    }
+  }
+
+}
