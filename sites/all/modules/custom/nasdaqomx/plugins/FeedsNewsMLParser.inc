@@ -30,7 +30,8 @@ class FeedsNewsMLParser extends FeedsParser {
 
     foreach ($releases as $release) {
       $item = array();
-      $id = (string)$release->xpath($idXpath)[0];
+      $id = $release->xpath($idXpath);
+      $id = (string) $id[0];
       preg_match('/^(([A-Za-z]{1,}\s?){1,}_)([0-9]*)$/', trim($id), $matches);
       $item['ReleaseID'] = intval(trim($matches[3]));
       $item['HeadLine'] = (string) $release->xpath($headlineXpath)[0];
