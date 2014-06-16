@@ -182,7 +182,9 @@
               <?php print $title; ?>
             </h1>
           <?php endif; ?>
-
+          <?php if ($subhead): ?>
+            <h2 class="subhead"><?php print $subhead; ?></h2>
+          <?php endif; ?>
           <?php if ($messages): ?>
             <div id="messages">
               <?php print $messages; ?>
