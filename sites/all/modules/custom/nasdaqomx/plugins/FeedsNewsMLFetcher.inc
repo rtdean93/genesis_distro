@@ -180,7 +180,8 @@ class FeedsNewsMLFetcher extends FeedsHTTPFetcher {
     else {
       $last_item_result = db_query("SELECT MAX(d.news_dateline_value) AS last_feed_date FROM {field_data_news_dateline} d;");
       if ($last_item_result->rowCount() > 0) {
-        $last_date = strtotime($last_item_result->fetchAssoc()['last_feed_date']); // db_fetch_object($last_item_result)->last_feed_date;
+        $last_date = $last_item_result->fetchAssoc();
+        $last_date = strtotime($last_date['last_feed_date']);
         $fetcher_result->setStart($last_date);
       }
     }
