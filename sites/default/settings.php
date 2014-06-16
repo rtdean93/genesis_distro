@@ -658,6 +658,11 @@ $conf['fast_404_HTML_error_all_paths'] = FALSE;
 # This setting will deliver 404s with less than 2MB of RAM.
 //fast_404_path_check();
 
+
+$conf['nasdaqomx_company_id'] = 'ABEA-4CSQ7X';
+$conf['nasdaqomx_pin'] = '887304226';
+$conf['nasdaqomx_domain'] = 'http://investors.reachlocal.com';
+
 /**
  * Create the local.settings.php file to override any variables set in this file
  * there for your local development environment.
