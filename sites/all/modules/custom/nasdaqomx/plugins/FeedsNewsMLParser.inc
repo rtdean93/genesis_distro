@@ -34,20 +34,29 @@ class FeedsNewsMLParser extends FeedsParser {
       $id = (string) $id[0];
       preg_match('/^(([A-Za-z]{1,}\s?){1,}_)([0-9]*)$/', trim($id), $matches);
       $item['ReleaseID'] = intval(trim($matches[3]));
-      $item['HeadLine'] = (string) $release->xpath($headlineXpath)[0];
-      $item['SubHeadLine'] = (string) $release->xpath($subheadXpath)[0];
-      $item['DateLine'] = @strtotime(trim((string) $release->xpath($dateXpath)[0]));
+      $headline = $release->xpath($headlineXpath);
+      $item['HeadLine'] = (string) $headline[0];
+      $subhead = $release->xpath($subheadXpath);
+      $item['SubHeadLine'] = (string) $subhead[0];
+      $dateline = $release->xpath($dateXpath);
+      $item['DateLine'] = @strtotime(trim((string) $dateline[0]));
       // We'll have to clean up the dates so we can parse them with strtotime().
-      $d = trim((string) $release->xpath($dateTimeXpath)[0]);
+      $d = $release->xpath($dateTimeXpath);
+      $d = trim((string) $d[0]);
       $d = str_replace(' ET', '', $d);
       $item['DateTimeLine'] = strtotime($d);
 
       // Get the meta data (type, language, attachments, etc.)
-      $langEl = $release->xpath($metaLang)[0];
-      $typeEl = $release->xpath($metaTypeXpath)[0];
+      $lng = $release->xpath($metaLang);
+      $langEl = $lng[0];
+      $type = $release->xpath($metaTypeXpath);
+      $typeEl = $type[0];
 
-      $item['Language'] = trim($langEl->attributes()['FormalName']);
-      $item['Genre'] = trim($typeEl->attributes()['FormalName']);
+      $langAttr = $langEl->attributes();
+      $typeAttr = $typeEl->attributes();
+
+      $item['Language'] = trim($langAttr['FormalName']);
+      $item['Genre'] = trim($typeAttr['FormalName']);
       $item['PDF'] = '';
       $item['PDFSize'] = '';
 
@@ -64,7 +73,8 @@ class FeedsNewsMLParser extends FeedsParser {
         }
       }
 
-      $body = trim((string) $release->xpath($bodyXpath)[0]);
+      $body = $release->xpath($bodyXpath);
+      $body = trim((string) $body[0]);
       // watchdog('nasdaqomx', '!id data (pre-clean):<br><pre>!data</pre>', array('!id' => $item['ReleaseID'], '!data' => print_r(htmlentities($body), true)), WATCHDOG_NOTICE);
 
       // Some of the releases contain HTML document structures that need removed
