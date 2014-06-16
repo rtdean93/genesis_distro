@@ -1,0 +1,207 @@
+<?php
+/**
+ * @file Install file for the NASDAQ OMX Releases module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function nasdaqomx_install() {
+  node_types_rebuild();
+  $types = node_type_get_types();
+  node_add_body_field($types['omx_news']);
+  add_custom_fields();
+
+  $types = array('omx_news', 'newsml_importer');
+
+  $options = array(
+    'status',
+  );
+
+  foreach ($types as $type) {
+    variable_set('comment_' . $type, 0);
+    variable_set('node_submitted_' . $type, 0);
+    variable_set('node_options_' . $type, $options);
+  }
+
+  // Create variables to store the company ID and PIN from NASDAQ OMX
+  // for use with their API.
+  variable_set('nasdaqomx_company_id', '');
+  variable_set('nasdaqomx_pin', '');
+  variable_set('nasdaqomx_domain', '');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function nasdaqomx_uninstall() {
+  $types = node_type_get_types();
+  $types = array($types['omx_news'], $types['newsml_importer']);
+  foreach ($types as $type) {
+    $sql = 'SELECT nid FROM {node} n WHERE n.type = :type';
+    $result = db_query($sql, array(':type' => $type->type));
+
+    if ($result->rowCount()) {
+      $nids = array();
+      foreach ($result as $row) {
+        $nids[] = $row->nid;
+      }
+      node_delete_multiple($nids);
+    }
+
+    delete_custom_fields();
+    node_type_delete($type->type);
+
+    variable_del('comment_' . $type->type);
+    variable_del('node_submitted_' . $type->type);
+    variable_del('node_options_' . $type->type);
+
+  }
+
+  variable_del('nasdaqomx_company_id');
+  variable_del('nasdaqomx_pin');
+  variable_del('nasdaqomx_domain');
+
+  field_purge_batch(500);
+}
+
+/*
+ * Custom functions to creation and deletion of fields with the Field API
+ */
+function _nasdaqomx_installed_fields() {
+  $t = get_t();
+
+  return array(
+    'news_release_id' => array(
+      'field_name' => 'news_release_id',
+      'label' => $t('Release ID'),
+      'type' => 'text'
+    ),
+    'news_subhead' => array(
+      'field_name' => 'news_subhead',
+      'label' => $t('Subheading'),
+      'type' => 'text_long'
+    ),
+    'news_dateline' => array(
+      'field_name' => 'news_dateline',
+      'label' => $t('Dateline'),
+      'type' => 'date',
+      'settings' => array(
+        'granularity' =>  drupal_map_assoc(array('year', 'month', 'day')),
+      ),
+    ),
+    'news_type' => array(
+      'field_name' => 'news_type',
+      'label' => $t('Type'),
+      'type' => 'text'
+    ),
+    'news_pdf_link' => array(
+      'field_name' => 'news_pdf_link',
+      'label' => $t('PDF link'),
+      'type' => 'text'
+    ),
+    'news_pdf_size' => array(
+      'field_name' => 'news_pdf_size',
+      'label' => $t('Size (in kilobytes)'),
+      'type' => 'number_integer'
+    ),
+    'news_source_link' => array(
+      'field_name' => 'news_source_link',
+      'label' => $t('Source URL'),
+      'type' => 'link_field',
+    ),
+  );
+}
+
+function _nasdaqomx_installed_instances() {
+  $t = get_t();
+
+  return array(
+    'news_release_id' => array(
+      'field_name' => 'news_release_id',
+      'label' => $t('Release ID'),
+      'type' => 'text',
+      'widget' => array(
+        'type' => 'textfield',
+      ),
+    ),
+    'news_subhead' => array(
+      'field_name' => 'news_subhead',
+      'label' => $t('Subheading'),
+      'type' => 'text',
+      'widget' => array(
+        'type' => 'textfield',
+      ),
+    ),
+    'news_dateline' => array(
+      'field_name' => 'news_dateline',
+      'label' => $t('Dateline'),
+      'type' => 'date',
+      'widget' => array(
+        'type' => 'date_text',
+      ),
+    ),
+    'news_type' => array(
+      'field_name' => 'news_type',
+      'label' => $t('Type'),
+      'type' => 'text',
+      'widget' => array(
+        'type' => 'textfield',
+      ),
+    ),
+    'news_pdf_link' => array(
+      'field_name' => 'news_pdf_link',
+      'label' => $t('PDF link'),
+      'type' => 'text',
+      'widget' => array(
+        'type' => 'textfield',
+      ),
+    ),
+    'news_pdf_size' => array(
+      'field_name' => 'news_pdf_size',
+      'label' => $t('Size (in kilobytes)'),
+      'type' => 'number_integer',
+      'widget' => array(
+        'type' => 'textfield',
+      ),
+    ),
+    'news_source_link' => array(
+      'field_name' => 'news_source_link',
+      'type' => 'link_field',
+      'label' => $t('Source URL'),
+      'widget' => array(
+        'type' => 'link_field',
+      ),
+      'settings' => array(
+        'title' => 'none',
+        'attributes' => array(
+          'target' => '_blank',
+          'rel' => 'nofollow'
+        ),
+      ),
+    ),
+  );
+}
+
+function add_custom_fields() {
+  foreach (_nasdaqomx_installed_fields() as $field) {
+    field_create_field($field);
+  }
+
+  foreach (_nasdaqomx_installed_instances() as $fi) {
+    $fi['entity_type'] = 'node';
+    $fi['bundle'] = 'omx_news';
+    print_r($fi);
+    field_create_instance($fi);
+  }
+}
+
+function delete_custom_fields() {
+  foreach (array_keys(_nasdaqomx_installed_fields()) as $field) {
+    field_delete_field($field);
+  }
+  $instances = field_info_instances('node', 'omx_news');
+  foreach ($instances as $instance_name => $fieldinstance) {
+    field_delete_instance($fieldinstance);
+  }
+}

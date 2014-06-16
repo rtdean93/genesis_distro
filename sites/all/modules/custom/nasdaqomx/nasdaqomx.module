@@ -1,0 +1,125 @@
+<?php
+/**
+* @file
+* Provides a content type and Feeds importer for NASDAQ OMX press releases.
+*/
+
+function nasdaqomx_help($path, $args) {
+  switch ($path) {
+    case 'admin/help#nasdaqomx':
+      $text = <<<HELP
+<h1>NASDAQ OMX Releases</h1>
+<p>The NASDAQ OMX Releases module allows for press releases (general releases and earnings reports) to be pulled automatically from the
+NASDAQ OMX Group, Inc. The module contains the following features.</p>
+<h3>Features</h3>
+<p><strong>Content Types</strong></p>
+<dl>
+  <dt><strong>OMX news</strong></dt>
+  <dd>Local store for the press release content retrieved from shareholder.com.</dd>
+  <dt><strong>NASDAQ release importer</strong></dt>
+  <dd>Pre-configured <em>Feeds importer</em> that will serve as the mechanism to retrieve the press releases from shareholder.com.</dd>
+</dl>
+
+
+<p><strong>Feeds Importer</strong></p>
+<dl>
+  <dt><strong>NASDAQ News Release</strong></dt>
+  <dd>Feeds importer that is preconfigured to use custom FeedsFetcher and FeedParser to retrieve the press releases XML documents and
+  parse into data fields for use in your Drupal website.</dd>
+</dl>
+<h3>Configuration</h3>
+<p>You must first contact your NASDAQ OMX Group representative and have them set up your irXML sandbox account. Once this has been
+done, you will be assigned a Company ID and PIN. Once you have received this information, you can proceed to the
+<a href="../config/services/nasdaqomx">module configuration page</a> and enter these credentials in the approprate fields. You will
+also need to set the domain which the NASDAQ OMX Group uses to host your press releases (i.e. http://investor.yourdomain.com). All of
+these configuration values are required and used throughout the module to dynamically build the module content.</p>
+<p>Contact Info</p>
+<p>This module was developed by Ron Ferguson of the ReachLocal marketing dev team. For questions or to report bugs, you can send an
+e-mail to <a href="mailto:r0nn1ef8580@gmail.com">r0nn1ef8580@gmail.com</a>.</p>
+HELP;
+
+      return $text;
+      break;
+  }
+}
+
+/**
+ * Implements hook_node_info()
+ *
+ * @return array
+ */
+function nasdaqomx_node_info() {
+  return array(
+    'omx_news' => array(
+      'name' => 'OMX news',
+      'base' => 'node_content',
+      'description' => t('News items retrieved from NASDAQ and stored locally.'),
+      'has_title' => TRUE,
+      'title_label' => t('Headline'),
+      'locked' => TRUE,
+    ),
+    'newsml_importer' => array(
+      'name' => 'NASDAQ release importer',
+      'base' => 'node_content',
+      'description' => t('NASDAQ press release import container.'),
+      'has_title' => TRUE,
+      'title_label' => t('Title'),
+      'locked' => TRUE,
+    ),
+  );
+}
+
+module_load_include('inc', 'nasdaqomx', 'nasdaqomx.views');
+module_load_include('inc', 'nasdaqomx', 'nasdaqomx.plugins');
+
+function nasdaqomx_menu() {
+  $items = array();
+
+  $items['admin/config/services/nasdaqomx'] = array(
+    'title' => 'NASDAQ OMX',
+    'description' => 'Manage API credentials for the NASDAQ OMX XML web service.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nasdaqomx_settings_form'),
+    'access callback' => 'user_access',
+    'access arguments' => array('administer_site_configuration'),
+    'file' => 'nasdaqomx.admin.inc',
+  );
+
+  return $items;
+}
+
+/**
+ * Implements hook_node_form() for the nasdaq_release content type.
+ *
+ * @param $node
+ * @param $form_state
+ * @return array
+ */
+function omx_news_form(&$node, $form_state) {
+  return node_content_form($node, $form_state);
+}
+
+/**
+ * Implements hook_node_form() for the newsml_importer content type.
+ *
+ * @param $node
+ * @param $form_state
+ * @return array
+ */
+function newsml_importer_form(&$node, $form_state) {
+  return node_content_form($node, $form_state);
+}
+
+function nasdaqomx_preprocess_page(&$vars) {
+  $vars['subhead'] = FALSE;
+
+  if (isset($vars['node']->type) && $vars['node']->type == 'omx_news') {
+    $nid_template = array_pop($vars['theme_hook_suggestions']);
+    $vars['theme_hook_suggestions'][] = 'page__node__omx_news';
+    $vars['theme_hook_suggestions'][] = $nid_template;
+    if(count($vars['node']->news_subhead)) {
+      $vars['subhead'] = $vars['node']->news_subhead[LANGUAGE_NONE][0]['value'];
+    }
+  }
+}
+
